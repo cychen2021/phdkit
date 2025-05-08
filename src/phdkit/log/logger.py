@@ -7,6 +7,7 @@ from datetime import datetime
 import io
 import threading
 
+
 class LogLevel(Enum):
     DEBUG = logging.DEBUG
     INFO = logging.INFO
@@ -14,23 +15,31 @@ class LogLevel(Enum):
     ERROR = logging.ERROR
     CRITICAL = logging.CRITICAL
 
+
 class LogOutputKind(Enum):
     CONSOLE = "stream"
     FILE = "file"
     EMAIL = "email"
 
-class EmailConfig:
-    ... # TODO: Implement
+
+class EmailConfig: ...  # TODO: Implement
+
 
 class LogOutput:
-    def __init__(self, kind: LogOutputKind, file: str | None = None,
-                       stream: TextIO | None = None, email_config: EmailConfig | None = None):
+    def __init__(
+        self,
+        kind: LogOutputKind,
+        file: str | None = None,
+        stream: TextIO | None = None,
+        email_config: EmailConfig | None = None,
+    ):
         self.__kind = kind
         assert file is None or stream is None, "Cannot specify both file and stream"
-        assert (kind == LogOutputKind.FILE and file is not None) or \
-               (kind == LogOutputKind.CONSOLE and stream is not None) or \
-               (kind == LogOutputKind.EMAIL and email_config is not None), \
-                "File, stream, or email config must be specified"
+        assert (
+            (kind == LogOutputKind.FILE and file is not None)
+            or (kind == LogOutputKind.CONSOLE and stream is not None)
+            or (kind == LogOutputKind.EMAIL and email_config is not None)
+        ), "File, stream, or email config must be specified"
         self.__file_name = file
         self.__stream = stream
         self.__email_config = email_config
@@ -54,7 +63,7 @@ class LogOutput:
         def emit(self, record: logging.LogRecord):
             self.__handler.emit(record)
             content = self.__stream.getvalue()
-            ... # TODO: Implement email sending
+            ...  # TODO: Implement email sending
             self.__stream.truncate(0)
             self.__stream.seek(0)
 
@@ -96,14 +105,24 @@ class LogOutput:
     def set_formatter(self, formatter: logging.Formatter):
         self.__handler.setFormatter(formatter)
 
+
 class Logger:
-    def __init__(self, name: str, *, format: Literal["plain", "jsonl"] = "plain", auto_timestamp: bool = True, outputs: list[LogOutput] = []):
+    def __init__(
+        self,
+        name: str,
+        *,
+        format: Literal["plain", "jsonl"] = "plain",
+        auto_timestamp: bool = True,
+        outputs: list[LogOutput] = [],
+    ):
         self.__underlying_logger: logging.Logger = logging.getLogger(name)
         self.__format: Literal["plain", "jsonl"] = format
         self.__auto_timestamp = auto_timestamp
         match format, auto_timestamp:
             case "plain", True:
-                formatter = logging.Formatter("[%(name)s:%(levelname)s] %(asciitime)s: %(message)s")
+                formatter = logging.Formatter(
+                    "[%(name)s:%(levelname)s] %(asciitime)s: %(message)s"
+                )
             case "plain", False:
                 formatter = logging.Formatter("[%(name)s:%(levelname)s] %(message)s")
             case "jsonl", True:
@@ -126,7 +145,12 @@ class Logger:
     def format(self) -> Literal["plain", "jsonl"]:
         return self.__format
 
-    def log(self, level: Literal["debug", "info", "warning", "error", "critical"] | LogLevel, header: str, message: object):
+    def log(
+        self,
+        level: Literal["debug", "info", "warning", "error", "critical"] | LogLevel,
+        header: str,
+        message: object,
+    ):
         if isinstance(level, LogLevel):
             level_number = level.value
         else:
@@ -136,7 +160,12 @@ class Logger:
             self.__underlying_logger.log(level_number, f"{header}: {message}")
         elif self.__format == "jsonl":
             timestamp = datetime.now().isoformat()
-            self.__underlying_logger.log(level_number, json.dumps({"timestamp": timestamp, "header": header, "message": message}))
+            self.__underlying_logger.log(
+                level_number,
+                json.dumps(
+                    {"timestamp": timestamp, "header": header, "message": message}
+                ),
+            )
 
     def debug(self, header: str, message: object):
         self.log("debug", header, message)
