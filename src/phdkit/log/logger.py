@@ -5,8 +5,7 @@ from enum import Enum
 import sys
 from datetime import datetime
 import io
-from threading import Lock
-
+import threading
 class LogLevel(Enum):
     DEBUG = logging.DEBUG
     INFO = logging.INFO
@@ -71,8 +70,8 @@ class LogOutput:
             self.__handler.handle(record)
         
         @override
-        def createLock(self) -> Lock:
-            return Lock()
+        def createLock(self):
+            super(logging.NullHandler, self).createLock()
     
     @property
     def handler(self) -> logging.Handler:
