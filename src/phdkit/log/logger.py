@@ -6,6 +6,7 @@ import sys
 from datetime import datetime
 import io
 import threading
+
 class LogLevel(Enum):
     DEBUG = logging.DEBUG
     INFO = logging.INFO
@@ -17,12 +18,12 @@ class LogOutputKind(Enum):
     CONSOLE = "stream"
     FILE = "file"
     EMAIL = "email"
-    
+
 class EmailConfig:
     ...
 
 class LogOutput:
-    def __init__(self, kind: LogOutputKind, file: str | None = None, 
+    def __init__(self, kind: LogOutputKind, file: str | None = None,
                        stream: TextIO | None = None, email_config: EmailConfig | None = None):
         self.__kind = kind
         assert file is None or stream is None, "Cannot specify both file and stream"
@@ -42,7 +43,7 @@ class LogOutput:
             case LogOutputKind.EMAIL:
                 assert email_config is not None
                 self.__handler = self.__EmailHandler(email_config)
-    
+
     class __EmailHandler(logging.NullHandler):
         def __init__(self, email_config: EmailConfig):
             self.__email_config = email_config
@@ -56,7 +57,7 @@ class LogOutput:
             ...
             self.__stream.truncate(0)
             self.__stream.seek(0)
-        
+
         @override
         def flush(self):
             self.acquire()
@@ -68,33 +69,33 @@ class LogOutput:
         @override
         def handle(self, record: logging.LogRecord):
             self.__handler.handle(record)
-        
+
         @override
         def createLock(self):
             super(logging.NullHandler, self).createLock()
-    
+
     @property
     def handler(self) -> logging.Handler:
         return self.__handler
-    
+
     def flush(self):
         self.__handler.flush()
 
     @staticmethod
     def stdout() -> "LogOutput":
         return LogOutput(LogOutputKind.CONSOLE, stream=sys.stdout)
-    
+
     @staticmethod
     def stderr() -> "LogOutput":
         return LogOutput(LogOutputKind.CONSOLE, stream=sys.stderr)
-    
+
     @staticmethod
     def file(file: str) -> "LogOutput":
         return LogOutput(LogOutputKind.FILE, file=file)
 
     def set_formatter(self, formatter: logging.Formatter):
         self.__handler.setFormatter(formatter)
-    
+
 class Logger:
     def __init__(self, name: str, *, format: Literal["plain", "jsonl"] = "plain", auto_timestamp: bool = True, outputs: list[LogOutput] = []):
         self.__underlying_logger: logging.Logger = logging.getLogger(name)
@@ -109,10 +110,10 @@ class Logger:
                 formatter = logging.Formatter("%(message)s")
             case "jsonl", False:
                 formatter = logging.Formatter("%(message)s")
-            
+
             case _:
                 raise ValueError(f"Invalid format: {format}")
-            
+
         for output in outputs:
             output.set_formatter(formatter)
             self.__underlying_logger.addHandler(output.handler)
@@ -136,7 +137,7 @@ class Logger:
         elif self.__format == "jsonl":
             timestamp = datetime.now().isoformat()
             self.__underlying_logger.log(level_number, json.dumps({"timestamp": timestamp, "header": header, "message": message}))
-    
+
     def debug(self, header: str, message: object):
         self.log("debug", header, message)
 
