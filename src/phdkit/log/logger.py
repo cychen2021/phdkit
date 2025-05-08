@@ -20,7 +20,7 @@ class LogOutputKind(Enum):
     EMAIL = "email"
 
 class EmailConfig:
-    ...
+    ... # TODO: Implement
 
 class LogOutput:
     def __init__(self, kind: LogOutputKind, file: str | None = None,
@@ -54,7 +54,7 @@ class LogOutput:
         def emit(self, record: logging.LogRecord):
             self.__handler.emit(record)
             content = self.__stream.getvalue()
-            ...
+            ... # TODO: Implement email sending
             self.__stream.truncate(0)
             self.__stream.seek(0)
 
