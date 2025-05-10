@@ -5,7 +5,9 @@ from enum import Enum
 import sys
 from datetime import datetime
 import io
-import threading
+import os
+import tomllib
+from ..configlib import configurable, setting, ConfigReader
 
 
 class LogLevel(Enum):
@@ -22,7 +24,105 @@ class LogOutputKind(Enum):
     EMAIL = "email"
 
 
-class EmailConfig: ...  # TODO: Implement
+def __read_email_config(config_file: str | None) -> dict:
+    if config_file is None:
+        config = {}
+        if "MAILOG_RECEIVER" in os.environ:
+            config["mailog_receiver"] = os.environ["MAILOG_RECEIVER"]
+        else:
+            config["mailog_receiver"] = None
+
+        if "MAILOG_SMTP" in os.environ:
+            config["mailog_smtp"] = os.environ["MAILOG_SMTP"]
+        else:
+            config["mailog_smtp"] = None
+
+        if "MAILOG_SENDER" in os.environ:
+            config["mailog_sender"] = os.environ["MAILOG_SENDER"]
+        else:
+            config["mailog_sender"] = None
+    else:
+        with open(config_file, "rb") as f:
+            config = tomllib.load(f)
+        assert set(config.keys()).issubset(
+            {"mailog_receiver", "mailog_smtp", "mailog_sender"}
+        )
+        if "mailog_receiver" not in config:
+            config["mailog_receiver"] = None
+        if "mailog_smtp" not in config:
+            config["mailog_smtp"] = None
+        if "mailog_sender" not in config:
+            config["mailog_sender"] = None
+    return config
+
+
+def __read_email_env_config(config_file: str | None) -> dict:
+    if config_file is None:
+        config = {}
+        if "MAILOG_PASSWORD" in os.environ:
+            config["mailog_password"] = os.environ["MAILOG_PASSWORD"]
+        else:
+            config["mailog_password"] = None
+    else:
+        with open(config_file, "rb") as f:
+            config = tomllib.load(f)
+        assert set(config.keys()).issubset({"mailog_password"})
+        if "mailog_password" not in config:
+            config["mailog_password"] = None
+    return config
+
+# TODO: The design pattern can be improved
+@configurable(__read_email_config, __read_email_env_config)
+class EmailConfig:
+    def __init__(self):
+        self.__receiver = None
+        self.__smtp = None
+        self.__sender = None
+        self.__password = None
+
+    @property
+    def receiver(self) -> str | None:
+        if self.__receiver is None:
+            raise ValueError("Receiver email address is not set")
+        return self.__receiver
+
+    @receiver.setter
+    @setting("mailog_receiver")
+    def receiver(self, value: str):
+        self.__receiver = value
+
+    @property
+    def smtp(self) -> str | None:
+        if self.__smtp is None:
+            raise ValueError("SMTP server is not set")
+        return self.__smtp
+
+    @smtp.setter
+    @setting("mailog_smtp")
+    def smtp(self, value: str):
+        self.__smtp = value
+
+    @property
+    def sender(self) -> str | None:
+        if self.__sender is None:
+            raise ValueError("Sender email address is not set")
+        return self.__sender
+
+    @sender.setter
+    @setting("mailog_sender")
+    def sender(self, value: str):
+        self.__sender = value
+
+    @property
+    def password(self) -> str | None:
+        if self.__password is None:
+            raise ValueError("Email password is not set")
+        return self.__password
+
+    @password.setter
+    @setting("mailog_password")
+    def password(self, value: str):
+        self.__password = value
 
 
 class LogOutput:
@@ -31,7 +131,7 @@ class LogOutput:
         kind: LogOutputKind,
         file: str | None = None,
         stream: TextIO | None = None,
-        email_config: EmailConfig | None = None,
+        email_config: EmailConfig | None = None, # type: ignore[assignment]
     ):
         self.__kind = kind
         assert file is None or stream is None, "Cannot specify both file and stream"
