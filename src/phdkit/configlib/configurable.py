@@ -18,6 +18,8 @@ Args:
     read_config: A callable that reads the configuration file and returns a dictionary.
     read_env: A callable that reads the secret config values and returns a dictionary.
 """
+
+
 def configurable(read_config: ConfigReader, read_env: ConfigReader | None = None):
     def __configurable(cls: Type) -> Type:
         settings = {}
@@ -57,6 +59,8 @@ attribute that specifies the key in the configuration file that corresponds to t
 Args:
     key: The key in the configuration file that corresponds to this setting, separated by dots.
 """
+
+
 def setting(config_key: str):
     def __setting(setter: Callable) -> Callable:
         def wrapper(instance: Type) -> Type:
