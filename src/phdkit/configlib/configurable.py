@@ -57,7 +57,7 @@ def setting(config_key: str):
     attribute that specifies the key in the configuration file that corresponds to this setting.
 
     Args:
-        key: The key in the configuration file that corresponds to this setting, separated by dots.
+        config_key: The key in the configuration file that corresponds to this setting, separated by dots.
     """
 
     def __setting(setter: Callable) -> Callable:
