@@ -6,6 +6,18 @@ def __split_key(key: str) -> list[str]:
     return key.split(".")
 
 
+"""Configure a class with settings from a configuration file.
+
+This decorator allows you to define a class with settings that can be loaded from configuration
+files. The configuration can be separated into two parts: the main configuration file and
+one that contain secret values (can be loaded from a git-ignored file or environment variables).
+The decorated class should contain property setters that are decorated with the `@setting` decorator
+to store the configuration values.
+
+Args:
+    read_config: A callable that reads the configuration file and returns a dictionary.
+    read_env: A callable that reads the secret config values and returns a dictionary.
+"""
 def configurable(read_config: ConfigReader, read_env: ConfigReader | None = None):
     def __configurable(cls: Type) -> Type:
         settings = {}
@@ -36,10 +48,19 @@ def configurable(read_config: ConfigReader, read_env: ConfigReader | None = None
     return __configurable
 
 
-def setting(key: str):
+"""Decorator to mark a method as a setting setter.
+
+This decorator marks a method as a setting setter. The method should be a property setter
+that takes a value and sets it to the instance. The method should also have a `config_key`
+attribute that specifies the key in the configuration file that corresponds to this setting.
+
+Args:
+    key: The key in the configuration file that corresponds to this setting, separated by dots.
+"""
+def setting(config_key: str):
     def __setting(setter: Callable) -> Callable:
         def wrapper(instance: Type) -> Type:
-            setter.config_key = key
+            setter.config_key = config_key
             return setter(instance)
 
         return wrapper
