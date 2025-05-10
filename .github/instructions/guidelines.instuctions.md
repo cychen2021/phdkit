@@ -1,8 +1,3 @@
----
-description: 
-globs: 
-alwaysApply: true
----
 # AI Python Development Assistant: Core Practices
 
 - **Modular Design:** Emphasize clear separation of concerns.
