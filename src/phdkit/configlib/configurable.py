@@ -32,6 +32,7 @@ def configurable(read_config: ConfigReader, read_env: ConfigReader | None = None
 
         cls.load_config = load_config
         return cls
+
     return __configurable
 
 
@@ -42,4 +43,5 @@ def setting(key: str):
             return setter(instance)
 
         return wrapper
+
     return __setting
