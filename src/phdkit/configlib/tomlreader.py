@@ -1,3 +1,5 @@
+# TODO: Add more functionalities
+
 import tomllib
 from typing import Callable, Protocol
 from .configurable import ConfigReader
