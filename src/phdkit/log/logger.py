@@ -170,7 +170,7 @@ class Logger:
         self.__outputs = {}
         for output in outputs:
             match output.format, output.auto_timestamp:
-                case "plain", False
+                case "plain", False:
                     self.__underlying_logger.addHandler(output.handler)
                 case "plain", True:
                     self.__underlying_logger_with_timestamp.addHandler(output.handler)
