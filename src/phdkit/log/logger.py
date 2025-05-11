@@ -207,12 +207,21 @@ class LogOutput:
 
 
 class Logger:
+    __default_output = LogOutput.stderr(
+        id="stderr",
+        level=LogLevel.INFO,
+        format="plain",
+        auto_timestamp=True,
+    )
+
     def __init__(
         self,
         name: str,
         *,
         outputs: list[LogOutput] = [],
     ):
+        if not outputs:
+            outputs = [Logger.__default_output]
         self.__underlying_logger: logging.Logger = logging.getLogger(name)
         self.__underlying_logger_with_timestamp: logging.Logger = logging.getLogger(
             name
