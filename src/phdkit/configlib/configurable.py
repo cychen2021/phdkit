@@ -1,4 +1,4 @@
-from typing import Type, Callable, Protocol, Any
+from typing import Type, Callable, Any
 from .configreader import ConfigReader
 from abc import ABC
 
@@ -7,7 +7,12 @@ def __split_key(key: str) -> list[str]:
     return key.split(".")
 
 
-class Configurable(Protocol):
+class Configurable[T](Any, ABC):
+    """A class that has been make configurable.
+
+    This class is only for type hinting purposes. It is not meant to be used directly.
+    """
+
     def load_config(self, config_file: str | None = None, env_file: str | None = None):
         """Load the configuration from files and set the settings.
 
@@ -18,16 +23,6 @@ class Configurable(Protocol):
             env_file: The path to the environment file. Secret values should be loaded from this file.
         """
         ...
-
-
-class Confignized[T](Configurable, Any):
-    """A class that has been made configurable.
-
-    This class is only for type hinting.
-    """
-
-    def load_config(self, config_file: str | None = None, env_file: str | None = None):
-        pass
 
 
 def configurable(
@@ -52,7 +47,7 @@ def configurable(
         config_key: A dot-separated key. If set, only parts corresponding to this key in the configuration file will be loaded.
     """
 
-    def __configurable[T](cls: Type[T]) -> Type[Confignized[T]]:
+    def __configurable[T](cls: Type[T]) -> Type[Configurable[T]]:
         settings = {}
         for name, attribute in cls.__dict__.items():
             if callable(attribute) and hasattr(attribute, "config_key"):
