@@ -30,6 +30,8 @@ def configurable(
     The decorated class should contain property setters that are decorated with the `@setting` decorator
     to store the configuration values.
 
+    Note that this decorator will discard type information due to the limitations of the Python type hinting system.
+
     Args:
         read_config: A callable that reads the configuration file and returns a dictionary.
         read_env: A callable that reads the secret config values and returns a dictionary.
