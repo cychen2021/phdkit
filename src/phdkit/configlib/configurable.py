@@ -6,7 +6,7 @@ def __split_key(key: str) -> list[str]:
     return key.split(".")
 
 
-def configurable(read_config: ConfigReader, read_env: ConfigReader | None = None):
+def configurable(read_config: ConfigReader, read_env: ConfigReader | None = None, *, config_key: str = ""):
     """Configure a class with settings from a configuration file.
 
     This decorator allows you to define a class with settings that can be loaded from configuration
@@ -18,6 +18,7 @@ def configurable(read_config: ConfigReader, read_env: ConfigReader | None = None
     Args:
         read_config: A callable that reads the configuration file and returns a dictionary.
         read_env: A callable that reads the secret config values and returns a dictionary.
+        config_key: A dot-separated key. If set, only parts corresponding to this key in the configuration file will be loaded.
     """
 
     def __configurable(cls: Type) -> Type:
@@ -35,6 +36,13 @@ def configurable(read_config: ConfigReader, read_env: ConfigReader | None = None
                 return current_config
 
             config = read_config(config_file)
+            if config_key:
+                route = __split_key(config_key)
+                for key in route:
+                    if key not in config:
+                        raise KeyError(f"Key {key} not found in configuration file")
+                    config = config[key]
+
             for key, setter in self.settings.items():
                 setter(self, __load_key(key, config))
             if read_env:
