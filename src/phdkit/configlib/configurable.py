@@ -7,20 +7,6 @@ def __split_key(key: str) -> list[str]:
     return key.split(".")
 
 
-class Configurable[T](Type[T], Any):
-    """A configurable version of `T`
-
-    Theoretically, `Configurable[T]` should inherit everything from `T` plus `load_config`.
-    However, during type checking, the type information of `T` is discarded. This may be a
-    limitation of the type checkers. We work around by making `Configurable` inherits `Any`
-    to fix all the annoying type hinting errors.
-    """
-
-    def load_config(self, config_file: str | None = None):
-        """Load config from file. If not set, load config from the default place."""
-        ...
-
-
 def configurable(
     read_config: ConfigReader,
     read_env: ConfigReader | None = None,
@@ -35,20 +21,24 @@ def configurable(
     The decorated class should contain property setters that are decorated with the `@setting` decorator
     to store the configuration values.
 
+    Note that since we cannot play TypeScript-like type gymnastics the type hinting system of Python.
+    We force the returned class to be of the same type as the original class to keep most type information.
+    It will be extended with a `load_config(config_file=None, env_file=None)` method.
+
     Args:
         read_config: A callable that reads the configuration file and returns a dictionary.
         read_env: A callable that reads the secret config values and returns a dictionary.
         config_key: A dot-separated key. If set, only parts corresponding to this key in the configuration file will be loaded.
     """
 
-    def __configurable[T](cls: Type[T]) -> Type[Configurable[T]]:
+    def __configurable[T](cls: Type[T]) -> Type[T]:
         settings = {}
         for name, attribute in cls.__dict__.items():
             if callable(attribute) and hasattr(attribute, "config_key"):
                 settings[attribute.config_key] = attribute
         cls.settings = settings  # type: ignore
 
-        def load_config(self, config_file: str | None = None):
+        def load_config(self, config_file: str | None = None, env_file: str | None = None):
             def __load_key(key: str, config: dict):
                 current_config = config
                 for key in __split_key(key):
@@ -66,13 +56,16 @@ def configurable(
             for key, setter in self.settings.items():
                 setter(self, __load_key(key, config))
             if read_env:
-                env_config = read_env(config_file)
+                env_config = read_env(env_file)
                 for key, setter in self.settings.items():
                     if key in env_config:
                         setter(self, __load_key(key, env_config))
+            else:
+                if env_file:
+                    raise ValueError("The configurable doesn't accept a separate environment file")
 
-        cls.load_config = load_config  # type: ignore
-        return cls  # type: ignore
+        cls.load_config = load_config # type: ignore
+        return cls
 
     return __configurable
 

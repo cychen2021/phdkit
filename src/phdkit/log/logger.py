@@ -101,7 +101,7 @@ class LogOutput:
             self.__handler.emit(record)
             content = self.__stream.getvalue()
             self.__email_notifier.send(
-                subject=f"{record.levelname}: {record.name}",
+                header=f"{record.levelname}: {record.name}",
                 body=content,
             )
             self.__stream.truncate(0)
