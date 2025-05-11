@@ -1,10 +1,25 @@
-from typing import Type, Callable
+from typing import Type, Callable, Any
 from .configreader import ConfigReader
+from abc import ABC
 
 
 def __split_key(key: str) -> list[str]:
     return key.split(".")
 
+
+class Configurable[T](Type[T], Any):
+    """A configurable version of `T`
+
+    Theoretically, `Configurable[T]` should inherit everything from `T` plus `load_config`.
+    However, during type checking, the type information of `T` is discarded. This may be a
+    limitation of the type checkers. We work around by making `Configurable` inherits `Any`
+    to fix all the annoying type hinting errors.
+    """
+
+    def load_config(self, config_file: str | None = None):
+        """Load config from file. If not set, load config from the default place.
+        """
+        ...
 
 def configurable(
     read_config: ConfigReader,
@@ -26,12 +41,12 @@ def configurable(
         config_key: A dot-separated key. If set, only parts corresponding to this key in the configuration file will be loaded.
     """
 
-    def __configurable(cls: Type) -> Type:
+    def __configurable[T](cls: Type[T]) -> Type[Configurable[T]]:
         settings = {}
         for name, attribute in cls.__dict__.items():
             if callable(attribute) and hasattr(attribute, "config_key"):
                 settings[attribute.config_key] = attribute
-        cls.settings = settings
+        cls.settings = settings # type: ignore
 
         def load_config(self, config_file: str | None = None):
             def __load_key(key: str, config: dict):
@@ -56,8 +71,8 @@ def configurable(
                     if key in env_config:
                         setter(self, __load_key(key, env_config))
 
-        cls.load_config = load_config
-        return cls
+        cls.load_config = load_config # type: ignore
+        return cls # type: ignore
 
     return __configurable
 

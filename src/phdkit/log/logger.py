@@ -8,7 +8,6 @@ import io
 import os
 import tomllib
 from .notifier import EmailNotifier
-from ..configlib import configurable, setting, ConfigReader
 
 
 class LogLevel(Enum):
