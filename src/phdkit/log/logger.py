@@ -138,20 +138,72 @@ class LogOutput:
         self.__handler.flush()
 
     @staticmethod
-    def stdout(id: str | None = None) -> "LogOutput":
-        return LogOutput(id, kind=LogOutputKind.CONSOLE, stream=sys.stdout)
+    def stdout(
+        id: str | None = None,
+        level: LogLevel = LogLevel.INFO,
+        format: Literal["plain", "jsonl"] = "plain",
+        auto_timestamp: bool = True,
+    ) -> "LogOutput":
+        return LogOutput(
+            id,
+            kind=LogOutputKind.CONSOLE,
+            stream=sys.stdout,
+            level=level,
+            format=format,
+            auto_timestamp=auto_timestamp,
+        )
 
     @staticmethod
-    def stderr(id: str | None = None) -> "LogOutput":
-        return LogOutput(id, kind=LogOutputKind.CONSOLE, stream=sys.stderr)
+    def stderr(
+        id: str | None = None,
+        level: LogLevel = LogLevel.INFO,
+        format: Literal["plain", "jsonl"] = "plain",
+        auto_timestamp: bool = True,
+    ) -> "LogOutput":
+        return LogOutput(
+            id,
+            kind=LogOutputKind.CONSOLE,
+            stream=sys.stderr,
+            level=level,
+            format=format,
+            auto_timestamp=auto_timestamp,
+        )
 
     @staticmethod
-    def file(file: str, *, id: str | None = None) -> "LogOutput":
-        return LogOutput(id, kind=LogOutputKind.FILE, file=file)
+    def file(
+        file: str,
+        *,
+        id: str | None = None,
+        level: LogLevel = LogLevel.INFO,
+        format: Literal["plain", "jsonl"] = "plain",
+        auto_timestamp: bool = True,
+    ) -> "LogOutput":
+        return LogOutput(
+            id,
+            kind=LogOutputKind.FILE,
+            file=file,
+            level=level,
+            format=format,
+            auto_timestamp=auto_timestamp,
+        )
 
     @staticmethod
-    def email(email_notifier: EmailNotifier, *, id: str | None = None) -> "LogOutput":
-        return LogOutput(id, kind=LogOutputKind.EMAIL, email_notifier=email_notifier)
+    def email(
+        email_notifier: EmailNotifier,
+        *,
+        id: str | None = None,
+        level: LogLevel = LogLevel.WARNING,
+        format: Literal["plain", "jsonl"] = "plain",
+        auto_timestamp: bool = True,
+    ) -> "LogOutput":
+        return LogOutput(
+            id,
+            kind=LogOutputKind.EMAIL,
+            email_notifier=email_notifier,
+            level=level,
+            format=format,
+            auto_timestamp=auto_timestamp,
+        )
 
 
 class Logger:
