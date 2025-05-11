@@ -1,4 +1,4 @@
-from typing import Type, Callable, Any
+from typing import Type, Callable, Protocol, Any
 from .configreader import ConfigReader
 from abc import ABC
 
@@ -7,13 +7,19 @@ def __split_key(key: str) -> list[str]:
     return key.split(".")
 
 
-class Configurable[T](Any):
+class Configurable(Protocol):
     def load_config(self, config_file: str | None = None, env_file: str | None = None):
         """Load the configuration from files and set the settings.
 
         If not provided, the config will be loaded from the default locations.
+
+        Args:
+            config_file: The path to the configuration file.
+            env_file: The path to the environment file. Secret values should be loaded from this file.
         """
-        pass
+        ...
+
+class Confignized[T](Configurable, Any): ...
 
 
 def configurable(
@@ -38,7 +44,7 @@ def configurable(
         config_key: A dot-separated key. If set, only parts corresponding to this key in the configuration file will be loaded.
     """
 
-    def __configurable[T](cls: Type[T]) -> Type[Configurable[T]]:
+    def __configurable[T](cls: Type[T]) -> Type[Confignized[T]]:
         settings = {}
         for name, attribute in cls.__dict__.items():
             if callable(attribute) and hasattr(attribute, "config_key"):

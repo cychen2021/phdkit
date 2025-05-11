@@ -52,13 +52,17 @@ def __read_email_env_config(config_file: str | None) -> dict:
             config["mailog_password"] = None
     return config
 
-
 @configurable(
     read_config=__read_email_config,
     read_env=__read_email_env_config,
     config_key="mailog",
 )
-class EmailNotifier:
+class __EmailNotifier:
+    """The actual email notifier.
+
+    As the `configurable` decorator discards type information, we forward this class to `EmailNotifier`.
+    """
+
     def __init__(self):
         self.__receiver = None
         self.__smtp = None
@@ -129,3 +133,42 @@ class EmailNotifier:
         if value is not None:
             assert isinstance(value, str)
         self.__password = value
+
+class EmailNotifier(__EmailNotifier):
+    def __init__(self):
+        super().__init__()
+
+    def send(self, header: str, body: str):
+        super().send(header, body)
+
+    @property
+    def receiver(self) -> str | None:
+        return super().receiver
+
+    @receiver.setter
+    def receiver(self, value: str | None):
+        super().receiver = value
+
+    @property
+    def smtp(self) -> str | None:
+        return super().smtp
+
+    @smtp.setter
+    def smtp(self, value: str | None):
+        super().smtp = value
+
+    @property
+    def sender(self) -> str | None:
+        return super().sender
+
+    @sender.setter
+    def sender(self, value: str | None):
+        super().sender = value
+
+    @property
+    def password(self) -> str | None:
+        return super().password
+
+    @password.setter
+    def password(self, value: str | None):
+        super().password = value
