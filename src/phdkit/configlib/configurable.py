@@ -20,7 +20,14 @@ class Configurable(Protocol):
         ...
 
 
-class Confignized[T](Configurable, Any): ...
+class Confignized[T](Configurable, Any):
+    """A class that has been made configurable.
+
+    This class is only for type hinting.
+    """
+
+    def load_config(self, config_file: str | None = None, env_file: str | None = None):
+        pass
 
 
 def configurable(
