@@ -56,7 +56,7 @@ def __read_email_env_config(config_file: str | None) -> dict:
 @configurable(
     read_config=__read_email_config,
     read_env=__read_email_env_config,
-    config_key="mailog",
+    config_key="email_notifier",
 )
 class __EmailNotifier:
     """The actual email notifier.
