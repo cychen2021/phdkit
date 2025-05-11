@@ -34,7 +34,7 @@ class LogOutput:
         file: str | None = None,
         stream: TextIO | None = None,
         level: LogLevel = LogLevel.INFO,
-        email_notifier: EmailNotifier | None = None, # type: ignore[arg-type]
+        email_notifier: EmailNotifier | None = None,  # type: ignore[arg-type]
         format: Literal["plain", "jsonl"] = "plain",
         auto_timestamp: bool = True,
     ):
@@ -62,9 +62,7 @@ class LogOutput:
 
         match format:
             case "plain":
-                formatter = logging.Formatter(
-                    "[%(name)s:%(levelname)s] %(message)s"
-                )
+                formatter = logging.Formatter("[%(name)s:%(levelname)s] %(message)s")
             case "jsonl":
                 formatter = logging.Formatter("%(message)s")
 
@@ -83,7 +81,7 @@ class LogOutput:
     @property
     def kind(self) -> LogOutputKind:
         return self.__kind
-    
+
     @property
     def format(self) -> Literal["plain", "jsonl"]:
         return self.__format
@@ -163,9 +161,13 @@ class Logger:
         outputs: list[LogOutput] = [],
     ):
         self.__underlying_logger: logging.Logger = logging.getLogger(name)
-        self.__underlying_logger_with_timestamp: logging.Logger = logging.getLogger(name)
+        self.__underlying_logger_with_timestamp: logging.Logger = logging.getLogger(
+            name
+        )
         self.__underlying_jsonl_logger: logging.Logger = logging.getLogger(name)
-        self.__underlying_jsonl_logger_with_timestamp: logging.Logger = logging.getLogger(name)
+        self.__underlying_jsonl_logger_with_timestamp: logging.Logger = (
+            logging.getLogger(name)
+        )
 
         self.__outputs = {}
         for output in outputs:
@@ -175,9 +177,11 @@ class Logger:
                 case "plain", True:
                     self.__underlying_logger_with_timestamp.addHandler(output.handler)
                 case "jsonl", True:
-                        self.__underlying_jsonl_logger_with_timestamp.addHandler(output.handler)
+                    self.__underlying_jsonl_logger_with_timestamp.addHandler(
+                        output.handler
+                    )
                 case "jsonl", False:
-                        self.__underlying_jsonl_logger.addHandler(output.handler)
+                    self.__underlying_jsonl_logger.addHandler(output.handler)
             if output.id is not None:
                 self.__outputs[output.id] = output
 
@@ -208,12 +212,12 @@ class Logger:
         self.__underlying_logger.log(level_number, f"{header}: {message}")
         self.__underlying_jsonl_logger.log(
             level_number,
-            json.dumps(
-                {"header": header, "message": message}
-            ),
+            json.dumps({"header": header, "message": message}),
         )
         timestamp = datetime.now().isoformat()
-        self.__underlying_logger_with_timestamp.log(level_number, f"{header}@{timestamp}: {message}")
+        self.__underlying_logger_with_timestamp.log(
+            level_number, f"{header}@{timestamp}: {message}"
+        )
         self.__underlying_jsonl_logger_with_timestamp.log(
             level_number,
             json.dumps(
