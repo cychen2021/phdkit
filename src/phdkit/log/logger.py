@@ -198,6 +198,22 @@ class Logger:
         if output.id is not None:
             self.__outputs[output.id] = output
 
+    def remove_output(self, output: str | LogOutput):
+        if isinstance(output, str):
+            output = self.__outputs[output]
+        assert isinstance(output, LogOutput)
+        match output.format, output.auto_timestamp:
+            case "plain", False:
+                self.__underlying_logger.removeHandler(output.handler)
+            case "plain", True:
+                self.__underlying_logger_with_timestamp.removeHandler(output.handler)
+            case "jsonl", True:
+                self.__underlying_jsonl_logger_with_timestamp.removeHandler(output.handler)
+            case "jsonl", False:
+                self.__underlying_jsonl_logger.removeHandler(output.handler)
+        if output.id is not None:
+            del self.__outputs[output.id]
+
     def log(
         self,
         level: Literal["debug", "info", "warning", "error", "critical"] | LogLevel,
