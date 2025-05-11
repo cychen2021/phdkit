@@ -6,6 +6,7 @@ from abc import ABC
 def __split_key(key: str) -> list[str]:
     return key.split(".")
 
+
 class Configurable[T](Any):
     def load_config(self, config_file: str | None = None, env_file: str | None = None):
         """Load the configuration from files and set the settings.
@@ -13,6 +14,7 @@ class Configurable[T](Any):
         If not provided, the config will be loaded from the default locations.
         """
         pass
+
 
 def configurable(
     read_config: ConfigReader,
@@ -72,7 +74,7 @@ def configurable(
                     )
 
         cls.load_config = load_config  # type: ignore
-        return cls # type: ignore
+        return cls  # type: ignore
 
     return __configurable
 
