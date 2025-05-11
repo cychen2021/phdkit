@@ -38,7 +38,9 @@ def configurable(
                 settings[attribute.config_key] = attribute
         cls.settings = settings  # type: ignore
 
-        def load_config(self, config_file: str | None = None, env_file: str | None = None):
+        def load_config(
+            self, config_file: str | None = None, env_file: str | None = None
+        ):
             def __load_key(key: str, config: dict):
                 current_config = config
                 for key in __split_key(key):
@@ -62,9 +64,11 @@ def configurable(
                         setter(self, __load_key(key, env_config))
             else:
                 if env_file:
-                    raise ValueError("The configurable doesn't accept a separate environment file")
+                    raise ValueError(
+                        "The configurable doesn't accept a separate environment file"
+                    )
 
-        cls.load_config = load_config # type: ignore
+        cls.load_config = load_config  # type: ignore
         return cls
 
     return __configurable
