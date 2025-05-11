@@ -71,6 +71,7 @@ def __read_email_env_config(config_file: str | None) -> dict:
             config["mailog_password"] = None
     return config
 
+
 # TODO: The design pattern can be improved
 @configurable(__read_email_config, __read_email_env_config)
 class EmailConfig:
@@ -131,7 +132,7 @@ class LogOutput:
         kind: LogOutputKind,
         file: str | None = None,
         stream: TextIO | None = None,
-        email_config: EmailConfig | None = None, # type: ignore[assignment]
+        email_config: EmailConfig | None = None,  # type: ignore[assignment]
     ):
         self.__kind = kind
         assert file is None or stream is None, "Cannot specify both file and stream"

@@ -6,7 +6,12 @@ def __split_key(key: str) -> list[str]:
     return key.split(".")
 
 
-def configurable(read_config: ConfigReader, read_env: ConfigReader | None = None, *, config_key: str = ""):
+def configurable(
+    read_config: ConfigReader,
+    read_env: ConfigReader | None = None,
+    *,
+    config_key: str = "",
+):
     """Configure a class with settings from a configuration file.
 
     This decorator allows you to define a class with settings that can be loaded from configuration
