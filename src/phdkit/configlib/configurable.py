@@ -6,6 +6,13 @@ from abc import ABC
 def __split_key(key: str) -> list[str]:
     return key.split(".")
 
+class Configurable[T](Any):
+    def load_config(self, config_file: str | None = None, env_file: str | None = None):
+        """Load the configuration from files and set the settings.
+
+        If not provided, the config will be loaded from the default locations.
+        """
+        pass
 
 def configurable(
     read_config: ConfigReader,
@@ -21,17 +28,13 @@ def configurable(
     The decorated class should contain property setters that are decorated with the `@setting` decorator
     to store the configuration values.
 
-    Note that since we cannot play TypeScript-like type gymnastics the type hinting system of Python.
-    We force the returned class to be of the same type as the original class to keep most type information.
-    It will be extended with a `load_config(config_file=None, env_file=None)` method.
-
     Args:
         read_config: A callable that reads the configuration file and returns a dictionary.
         read_env: A callable that reads the secret config values and returns a dictionary.
         config_key: A dot-separated key. If set, only parts corresponding to this key in the configuration file will be loaded.
     """
 
-    def __configurable[T](cls: Type[T]) -> Type[T]:
+    def __configurable[T](cls: Type[T]) -> Type[Configurable[T]]:
         settings = {}
         for name, attribute in cls.__dict__.items():
             if callable(attribute) and hasattr(attribute, "config_key"):
@@ -69,7 +72,7 @@ def configurable(
                     )
 
         cls.load_config = load_config  # type: ignore
-        return cls
+        return cls # type: ignore
 
     return __configurable
 
