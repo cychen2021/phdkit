@@ -287,7 +287,7 @@ class Logger:
         )
         timestamp = datetime.now().isoformat()
         self.__underlying_logger_with_timestamp.log(
-            level_number, f"{header}@{timestamp}: {message}"
+            level_number, f"{header} @ {timestamp}: {message}"
         )
         self.__underlying_jsonl_logger_with_timestamp.log(
             level_number,
