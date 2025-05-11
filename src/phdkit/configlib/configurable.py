@@ -19,6 +19,7 @@ class Configurable(Protocol):
         """
         ...
 
+
 class Confignized[T](Configurable, Any): ...
 
 

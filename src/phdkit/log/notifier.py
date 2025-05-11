@@ -52,6 +52,7 @@ def __read_email_env_config(config_file: str | None) -> dict:
             config["mailog_password"] = None
     return config
 
+
 @configurable(
     read_config=__read_email_config,
     read_env=__read_email_env_config,
@@ -133,6 +134,7 @@ class __EmailNotifier:
         if value is not None:
             assert isinstance(value, str)
         self.__password = value
+
 
 class EmailNotifier(__EmailNotifier):
     def __init__(self):
