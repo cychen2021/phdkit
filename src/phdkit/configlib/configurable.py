@@ -17,9 +17,9 @@ class Configurable[T](Type[T], Any):
     """
 
     def load_config(self, config_file: str | None = None):
-        """Load config from file. If not set, load config from the default place.
-        """
+        """Load config from file. If not set, load config from the default place."""
         ...
+
 
 def configurable(
     read_config: ConfigReader,
@@ -46,7 +46,7 @@ def configurable(
         for name, attribute in cls.__dict__.items():
             if callable(attribute) and hasattr(attribute, "config_key"):
                 settings[attribute.config_key] = attribute
-        cls.settings = settings # type: ignore
+        cls.settings = settings  # type: ignore
 
         def load_config(self, config_file: str | None = None):
             def __load_key(key: str, config: dict):
@@ -71,8 +71,8 @@ def configurable(
                     if key in env_config:
                         setter(self, __load_key(key, env_config))
 
-        cls.load_config = load_config # type: ignore
-        return cls # type: ignore
+        cls.load_config = load_config  # type: ignore
+        return cls  # type: ignore
 
     return __configurable
 
