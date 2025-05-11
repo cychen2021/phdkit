@@ -208,7 +208,9 @@ class Logger:
             case "plain", True:
                 self.__underlying_logger_with_timestamp.removeHandler(output.handler)
             case "jsonl", True:
-                self.__underlying_jsonl_logger_with_timestamp.removeHandler(output.handler)
+                self.__underlying_jsonl_logger_with_timestamp.removeHandler(
+                    output.handler
+                )
             case "jsonl", False:
                 self.__underlying_jsonl_logger.removeHandler(output.handler)
         if output.id is not None:
