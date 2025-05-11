@@ -149,8 +149,9 @@ class LogOutput:
     def file(file: str, *, id: str | None = None) -> "LogOutput":
         return LogOutput(id, kind=LogOutputKind.FILE, file=file)
 
-    def set_formatter(self, formatter: logging.Formatter):
-        self.__handler.setFormatter(formatter)
+    @staticmethod
+    def email(email_notifier: EmailNotifier, *, id: str | None = None) -> "LogOutput":
+        return LogOutput(id, kind=LogOutputKind.EMAIL, email_notifier=email_notifier)
 
 
 class Logger:
