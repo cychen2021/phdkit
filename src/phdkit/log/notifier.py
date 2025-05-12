@@ -2,7 +2,7 @@ import tomllib
 import os
 import smtplib
 from email.mime.text import MIMEText
-from ..configlib import Configurable, setting, Setting
+from ..configlib import setting, configurable
 
 
 def __read_email_config(config_file: str | None) -> dict:
@@ -53,23 +53,24 @@ def __read_email_env_config(config_file: str | None) -> dict:
     return config
 
 
-class EmailNotifier(Configurable):
+@configurable(config_key="email", load_config=__read_email_config, load_env=__read_email_env_config)
+class EmailNotifier:
     """The actual email notifier.
 
     As the `configurable` decorator discards type information, we forward this class to `EmailNotifier`.
     """
 
-    reciever: Setting[None | str] = setting("mailog_receiver")
-    smtp: Setting[None | str] = setting("mailog_smtp")
-    sender: Setting[None | str] = setting("mailog_sender")
-    password: Setting[None | str] = setting("mailog_password")
+    @setting("email_reciever")
+    def reciever(self) -> str | None: ...
 
-    def __init__(self):
-        super().__init__(
-            read_config=__read_email_config,
-            read_env=__read_email_env_config,
-            config_key="email_notifier",
-        )
+    @setting("email_smtp")
+    def smtp(self) -> str | None: ...
+
+    @setting("email_sender")
+    def sender(self) -> str | None: ...
+
+    @setting("email_password")
+    def password(self) -> str | None: ...
 
     def send(self, header: str, body: str):
         """Send an email with the given header and body."""

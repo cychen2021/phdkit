@@ -2,10 +2,10 @@
 
 import tomllib
 from typing import Callable, Protocol
-from .configurable import ConfigReader
+from .configurable import ConfigLoader
 
 
-class TomlReader(ConfigReader):
+class TomlReader(ConfigLoader):
     def __init__(self, path: str):
         self.path = path
 

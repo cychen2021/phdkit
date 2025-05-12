@@ -1,4 +1,4 @@
-"""Utilities for loading configuration files to a Python object. *Don't use this module until we find the best design.*
+"""Utilities for loading configuration files to a Python object.
 
 This module provides a declarative way to load configuration files to a Python object.
 Via the decorator design pattern, you can define a class with designated config loader
@@ -9,17 +9,22 @@ Example usage:
 ```python
 ... # TODO: Add example usage
 ```
+
+Attributes:
+    Config: The singleton that manages configurations.
+    setting: A decorator to mark a method as a setting.
 """
 
 
-from .configurable import setting, Configurable, Setting
+from .configurable import setting, configurable, Config
 from .tomlreader import TomlReader
-from .configreader import ConfigReader
+from .configreader import ConfigLoader
 
 __all__ = [
     "setting",
     "TomlReader",
-    "ConfigReader",
-    "Configurable",
-    "Setting",
+    "ConfigLoader",
+    "configurable",
+    "Config",
+    "setting"
 ]
