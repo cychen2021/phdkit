@@ -11,7 +11,7 @@ Example usage:
 ```
 """
 
-from .configurable import configurable, setting, Configurable
+from .configurable import setting, Configurable, Setting
 from .tomlreader import TomlReader
 from .configreader import ConfigReader
 
@@ -21,4 +21,5 @@ __all__ = [
     "TomlReader",
     "ConfigReader",
     "Configurable",
+    "Setting",
 ]

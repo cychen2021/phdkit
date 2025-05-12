@@ -2,7 +2,7 @@ import tomllib
 import os
 import smtplib
 from email.mime.text import MIMEText
-from ..configlib import configurable, setting
+from ..configlib import Configurable, setting, Setting
 
 
 def __read_email_config(config_file: str | None) -> dict:
@@ -53,124 +53,41 @@ def __read_email_env_config(config_file: str | None) -> dict:
     return config
 
 
-@configurable(
-    read_config=__read_email_config,
-    read_env=__read_email_env_config,
-    config_key="email_notifier",
-)
-class __EmailNotifier:
+class EmailNotifier(Configurable):
     """The actual email notifier.
 
     As the `configurable` decorator discards type information, we forward this class to `EmailNotifier`.
     """
 
+    reciever: Setting[None | str] = setting("mailog_receiver")
+    smtp: Setting[None | str] = setting("mailog_smtp")
+    sender: Setting[None | str] = setting("mailog_sender")
+    password: Setting[None | str] = setting("mailog_password")
+
     def __init__(self):
-        self.__receiver = None
-        self.__smtp = None
-        self.__sender = None
-        self.__password = None
+        super().__init__(
+            read_config=__read_email_config,
+            read_env=__read_email_env_config,
+            config_key="email_notifier",
+        )
 
     def send(self, header: str, body: str):
         """Send an email with the given header and body."""
 
         if (
-            self.__receiver is None
-            or self.__smtp is None
-            or self.__sender is None
-            or self.__password is None
+            self.reciever is None
+            or self.smtp is None
+            or self.sender is None
+            or self.password is None
         ):
             raise ValueError("Email configuration is not set.")
 
         msg = MIMEText(body)
         msg["Subject"] = header
-        msg["From"] = self.__sender
-        msg["To"] = self.__receiver
+        msg["From"] = self.sender
+        msg["To"] = self.reciever
 
-        with smtplib.SMTP(self.__smtp) as server:
+        with smtplib.SMTP(self.smtp) as server:
             server.starttls()
-            server.login(self.__sender, self.__password)
-            server.sendmail(self.__sender, [self.__receiver], msg.as_string())
-
-    @property
-    def receiver(self) -> str | None:
-        return self.__receiver
-
-    @receiver.setter
-    @setting("receiver")
-    def receiver(self, value: str | None):
-        if value is not None:
-            assert isinstance(value, str)
-        self.__receiver = value
-
-    @property
-    def smtp(self) -> str | None:
-        return self.__smtp
-
-    @smtp.setter
-    @setting("smtp")
-    def smtp(self, value: str | None):
-        if value is not None:
-            assert isinstance(value, str)
-        self.__smtp = value
-
-    @property
-    def sender(self) -> str | None:
-        return self.__sender
-
-    @sender.setter
-    @setting("sender")
-    def sender(self, value: str | None):
-        if value is not None:
-            assert isinstance(value, str)
-        self.__sender = value
-
-    @property
-    def password(self) -> str | None:
-        return self.__password
-
-    @password.setter
-    @setting("password")
-    def password(self, value: str | None):
-        if value is not None:
-            assert isinstance(value, str)
-        self.__password = value
-
-
-class EmailNotifier(__EmailNotifier):
-    def __init__(self):
-        super().__init__()
-
-    def send(self, header: str, body: str):
-        super().send(header, body)
-
-    @property
-    def receiver(self) -> str | None:
-        return super().receiver
-
-    @receiver.setter
-    def receiver(self, value: str | None):
-        super().receiver = value
-
-    @property
-    def smtp(self) -> str | None:
-        return super().smtp
-
-    @smtp.setter
-    def smtp(self, value: str | None):
-        super().smtp = value
-
-    @property
-    def sender(self) -> str | None:
-        return super().sender
-
-    @sender.setter
-    def sender(self, value: str | None):
-        super().sender = value
-
-    @property
-    def password(self) -> str | None:
-        return super().password
-
-    @password.setter
-    def password(self, value: str | None):
-        super().password = value
+            server.login(self.sender, self.password)
+            server.sendmail(self.sender, [self.reciever], msg.as_string())
