@@ -6,6 +6,7 @@ from .configreader import ConfigLoader
 def __split_key(key: str) -> list[str]:
     return key.split(".")
 
+
 class __Config:
     _singleton = None
     _singleton_lock = Lock()
@@ -13,14 +14,25 @@ class __Config:
     def __new__(cls):
         if cls._singleton is None:
             with cls._singleton_lock:
-                if cls._singleton is None: # Double check since there may be another thread is creating the singleton
+                if (
+                    cls._singleton is None
+                ):  # Double check since there may be another thread is creating the singleton
                     cls._singleton = super().__new__(cls)
         return cls._singleton
 
     def __init__(self):
-        self.registry: dict[type, tuple[str, ConfigLoader, ConfigLoader | None, dict[str, "Setting"]]] = {}
+        self.registry: dict[
+            type, tuple[str, ConfigLoader, ConfigLoader | None, dict[str, "Setting"]]
+        ] = {}
 
-    def register[T](self, klass: Type[T], load_config: ConfigLoader, *, load_env: ConfigLoader | None = None, config_key: str = ""):
+    def register[T](
+        self,
+        klass: Type[T],
+        load_config: ConfigLoader,
+        *,
+        load_env: ConfigLoader | None = None,
+        config_key: str = "",
+    ):
         """Register a class with a config key.
 
         This method books the class in the registry with a optional config key. `load_config` will be used to load the config file
@@ -49,7 +61,7 @@ class __Config:
         if klass not in self.registry:
             raise ValueError(f"Class {klass} is not registered")
         self.registry[klass][3][config_key] = setting
-    
+
     def get_setting(self, klass: Type[Any], config_key: str) -> "Setting":
         """Get the settings for a class with a config key.
 
@@ -62,10 +74,14 @@ class __Config:
         if klass not in self.registry:
             raise ValueError(f"Class {klass} is not registered")
         if config_key not in self.registry[klass][3]:
-            raise ValueError(f"Config key {config_key} is not registered for class {klass}")
+            raise ValueError(
+                f"Config key {config_key} is not registered for class {klass}"
+            )
         return self.registry[klass][3][config_key]
 
-    def load(self, instance: Any, config_file: str | None = None, env_file: str | None = None):
+    def load(
+        self, instance: Any, config_file: str | None = None, env_file: str | None = None
+    ):
         """Load the configuration from files and set the settings.
 
         If not provided, the config will be loaded from the default locations.
@@ -79,6 +95,7 @@ class __Config:
         if klass not in self.registry:
             raise ValueError(f"Class {klass} is not registered")
         config_key, load_config, load_env, settings = self.registry[klass]
+
         def __load_key(key: str, config: dict):
             current_config = config
             for key in __split_key(key):
@@ -137,6 +154,7 @@ class Setting[S, T]:
     def __get__(self, owner: S, owner_type: Type[S]) -> T:
         return self.__property.__get__(owner, owner_type)
 
+
 def configurable(
     load_config: ConfigLoader,
     *,
@@ -160,28 +178,34 @@ def configurable(
 
     return decorator
 
+
 class __setting:
     _singleton = None
     _singleton_lock = Lock()
+
     def __new__(cls):
         if cls._singleton is None:
             with cls._singleton_lock:
                 if cls._singleton is None:
                     cls._singleton = super().__new__(cls)
         return cls._singleton
-    
-    def __init__(self): pass
 
-    def __call__[T](self, config_key: str) -> Callable[[Callable[[Any], T]], Setting[Any, T]]:
+    def __init__(self):
+        pass
+
+    def __call__[T](
+        self, config_key: str
+    ) -> Callable[[Callable[[Any], T]], Setting[Any, T]]:
         """Decorator to register a method as a setting.
-        
+
         This decorator registers the method as a setting with a config key. It will ignore the definition of the method
         and generate default getter and setter methods.
-        
+
         Args:
             config_key: The config key to use for this setting. If provided, only the parts of the config file that correspond to this key will be loaded.
             method: The method to register as a setting.
         """
+
         def decorator(method: Callable[[Any], T]) -> Setting[Any, T]:
             name = method.__name__
             attr_name = f"__setting_{name}"
@@ -191,15 +215,17 @@ class __setting:
 
             def fset(the_self: Any, value: T):
                 setattr(the_self, attr_name, value)
+
             s = Setting(fget=fget, fset=fset)
             setattr(method.__self__, name, s)
             Config.add_setting(type(method.__self__), config_key, s)
             return s
+
         return decorator
-    
+
     def setter[U, T](self, config_key: str):
         """Decorator to register a method as a setting setter."""
-        
+
         def decorator(method: Callable[[U, T], None]):
             try:
                 s = Config.get_setting(type(method.__self__), config_key)
@@ -212,10 +238,12 @@ class __setting:
             setattr(method.__self__, method.__name__, s)
             Config.add_setting(type(method.__self__), config_key, s)
             return s
+
         return decorator
+
     def getter[U, T](self, config_key: str):
         """Decorator to register a method as a setting getter."""
-        
+
         def decorator(method: Callable[[U], T]):
             try:
                 s = Config.get_setting(type(method.__self__), config_key)
@@ -228,6 +256,8 @@ class __setting:
             setattr(method.__self__, method.__name__, s)
             Config.add_setting(type(method.__self__), config_key, s)
             return s
+
         return decorator
-    
+
+
 setting = __setting()

@@ -53,7 +53,11 @@ def __read_email_env_config(config_file: str | None) -> dict:
     return config
 
 
-@configurable(config_key="email", load_config=__read_email_config, load_env=__read_email_env_config)
+@configurable(
+    config_key="email",
+    load_config=__read_email_config,
+    load_env=__read_email_env_config,
+)
 class EmailNotifier:
     """The actual email notifier.
 

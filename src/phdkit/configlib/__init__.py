@@ -15,16 +15,8 @@ Attributes:
     setting: A decorator to mark a method as a setting.
 """
 
-
 from .configurable import setting, configurable, Config
 from .tomlreader import TomlReader
 from .configreader import ConfigLoader
 
-__all__ = [
-    "setting",
-    "TomlReader",
-    "ConfigLoader",
-    "configurable",
-    "Config",
-    "setting"
-]
+__all__ = ["setting", "TomlReader", "ConfigLoader", "configurable", "Config", "setting"]
