@@ -235,6 +235,7 @@ class __setting:
                 )
             except ValueError:
                 s = Setting(fget=None, fset=method)
+            delattr(method.__self__, method.__name__)
             setattr(method.__self__, method.__name__, s)
             Config.add_setting(type(method.__self__), config_key, s)
             return s
