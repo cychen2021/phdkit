@@ -1,4 +1,4 @@
-from typing import Type, Callable, Any
+from typing import Type, Callable, Protocol, Any
 from .configreader import ConfigReader
 from abc import ABC
 
@@ -7,7 +7,7 @@ def __split_key(key: str) -> list[str]:
     return key.split(".")
 
 
-class Configurable[T](Any, ABC):
+class Configurable[T](Any, Protocol):
     """A class that has been make configurable.
 
     This class is only for type hinting purposes. It is not meant to be used directly.
