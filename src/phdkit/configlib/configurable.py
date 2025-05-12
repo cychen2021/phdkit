@@ -78,19 +78,6 @@ class __Config:
                 f"Config key {config_key} is not registered for class {klass}"
             )
         return self.registry[klass][3][config_key]
-    
-    def contain_setting(self, klass: Type[Any], config_key: str) -> bool:
-        """Check if the settings for a class with a config key exist.
-
-        This method returns True if the settings for the class with the given config key exist. If the class is not registered, a ValueError will be raised.
-
-        Args:
-            klass: The class to get the settings for
-            config_key: The config key to use for this class. If provided, only the parts of the config file that correspond to this key will be loaded.
-        """
-        if klass not in self.registry:
-            raise ValueError(f"Class {klass} is not registered")
-        return config_key in self.registry[klass][3]
 
     def load(
         self, instance: Any, config_file: str | None = None, env_file: str | None = None
@@ -166,42 +153,6 @@ class Setting[S, T]:
 
     def __get__(self, owner: S, owner_type: Type[S]) -> T:
         return self.__property.__get__(owner, owner_type)
-    
-    def setter(self, fset: Callable[[S, T], None]) -> "Setting[S, T]":
-        """Set the setter method for the setting.
-
-        Args:
-            fset: The setter method to set.
-        """
-        if self.fset is not None:
-            raise ValueError(
-                "Setter method already set. Please use the setter method to set the setter method."
-            )
-        if self.fget is None:
-            raise ValueError(
-                "Setter method not set. Please use the setter method to set the setter method."
-            )
-        self.fset = fset
-        self.__property = property(self.fget, fset)
-        return self
-
-    def getter(self, fget: Callable[[S], T]) -> "Setting[S, T]":
-        """Set the getter method for the setting.
-
-        Args:
-            fget: The getter method to set.
-        """
-        if self.fget is not None:
-            raise ValueError(
-                "Getter method already set. Please use the getter method to set the getter method."
-            )
-        if self.fset is None:
-            raise ValueError(
-                "Getter method not set. Please use the getter method to set the getter method."
-            )
-        self.fget = fget
-        self.__property = property(fget, self.fset)
-        return self
 
 
 def configurable(
@@ -276,10 +227,15 @@ class __setting:
         """Decorator to register a method as a setting setter."""
 
         def decorator(method: Callable[[U, T], None]) -> Setting[U, T]:
-            assert not Config.contain_setting(
-                type(method.__self__), config_key
-            ), f"Setting {config_key} already exists for {type(method.__self__)}"
-            s = Setting(fget=None, fset=method)
+            try:
+                s = Config.get_setting(type(method.__self__), config_key)
+                s = Setting(
+                    fget=s.fget,
+                    fset=method,
+                )
+                delattr(method.__self__, method.__name__)
+            except ValueError:
+                s = Setting(fget=None, fset=method)
             setattr(method.__self__, method.__name__, s)
             Config.add_setting(type(method.__self__), config_key, s)
             return s
@@ -290,10 +246,15 @@ class __setting:
         """Decorator to register a method as a setting getter."""
 
         def decorator(method: Callable[[U], T]) -> Setting[U, T]:
-            assert not Config.contain_setting(
-                type(method.__self__), config_key
-            ), f"Setting {config_key} already exists for {type(method.__self__)}"
-            s = Setting(fget=method, fset=None)
+            try:
+                s = Config.get_setting(type(method.__self__), config_key)
+                s = Setting(
+                    fget=method,
+                    fset=s.fset,
+                )
+                delattr(method.__self__, method.__name__)
+            except ValueError:
+                s = Setting(fget=method, fset=None)
             setattr(method.__self__, method.__name__, s)
             Config.add_setting(type(method.__self__), config_key, s)
             return s
