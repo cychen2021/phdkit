@@ -138,22 +138,6 @@ class __Config:
 Config = __Config()
 
 
-# class Setting[S, T]:
-#     def __init__(
-#         self,
-#         fget: Callable[[S], T] | None = None,
-#         fset: Callable[[S, T], None] | None = None,
-#     ):
-#         self.fset = fset
-#         self.fget = fget
-#         self.__property = property(fget=fget, fset=fset)
-
-#     def __set__(self, owner: S, value: T):
-#         self.__property.__set__(owner, value)
-
-#     def __get__(self, owner: S, owner_type: Type[S]) -> T:
-#         return self.__property.__get__(owner, owner_type)
-
 Setting = property
 
 
@@ -195,9 +179,7 @@ class __setting:
     def __init__(self):
         pass
 
-    def __call__(
-        self, config_key: str
-    ) -> Callable[[Callable[[Any], Any]], Setting]:
+    def __call__(self, config_key: str) -> Callable[[Callable[[Any], Any]], Setting]:
         """Decorator to register a method as a setting.
 
         This decorator registers the method as a setting with a config key. It will ignore the definition of the method
@@ -225,7 +207,9 @@ class __setting:
 
         return decorator
 
-    def setter[U, T](self, config_key: str) -> Callable[[Callable[[Any, Any], None]], Setting]:
+    def setter[U, T](
+        self, config_key: str
+    ) -> Callable[[Callable[[Any, Any], None]], Setting]:
         """Decorator to register a method as a setting setter."""
 
         def decorator(method: Callable[[Any, Any], None]) -> Setting:
@@ -240,7 +224,9 @@ class __setting:
 
         return decorator
 
-    def getter[U, T](self, config_key: str) -> Callable[[Callable[[Any], Any]], Setting]:
+    def getter[U, T](
+        self, config_key: str
+    ) -> Callable[[Callable[[Any], Any]], Setting]:
         """Decorator to register a method as a setting getter."""
 
         def decorator(method: Callable[[Any], Any]) -> Setting:
