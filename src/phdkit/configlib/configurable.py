@@ -223,10 +223,10 @@ class __setting:
 
         return decorator
 
-    def setter[U, T](self, config_key: str):
+    def setter[U, T](self, config_key: str) -> Callable[[Callable[[U, T], None]], Setting[U, T]]:
         """Decorator to register a method as a setting setter."""
 
-        def decorator(method: Callable[[U, T], None]):
+        def decorator(method: Callable[[U, T], None]) -> Setting[U, T]:
             try:
                 s = Config.get_setting(type(method.__self__), config_key)
                 s = Setting(
@@ -241,10 +241,10 @@ class __setting:
 
         return decorator
 
-    def getter[U, T](self, config_key: str):
+    def getter[U, T](self, config_key: str) -> Callable[[Callable[[U], T]], Setting[U, T]]:
         """Decorator to register a method as a setting getter."""
 
-        def decorator(method: Callable[[U], T]):
+        def decorator(method: Callable[[U], T]) -> Setting[U, T]:
             try:
                 s = Config.get_setting(type(method.__self__), config_key)
                 s = Setting(
