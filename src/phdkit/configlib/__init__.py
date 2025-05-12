@@ -11,6 +11,8 @@ Example usage:
 ```
 """
 
+# TODO: Don't use this module until we find the best design.
+
 from .configurable import setting, Configurable, Setting
 from .tomlreader import TomlReader
 from .configreader import ConfigReader
