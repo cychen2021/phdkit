@@ -233,9 +233,9 @@ class __setting:
                     fget=s.fget,
                     fset=method,
                 )
+                delattr(method.__self__, method.__name__)
             except ValueError:
                 s = Setting(fget=None, fset=method)
-            delattr(method.__self__, method.__name__)
             setattr(method.__self__, method.__name__, s)
             Config.add_setting(type(method.__self__), config_key, s)
             return s
@@ -252,6 +252,7 @@ class __setting:
                     fget=method,
                     fset=s.fset,
                 )
+                delattr(method.__self__, method.__name__)
             except ValueError:
                 s = Setting(fget=method, fset=None)
             setattr(method.__self__, method.__name__, s)
