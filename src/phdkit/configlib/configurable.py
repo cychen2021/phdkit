@@ -8,7 +8,12 @@ def __split_key(key: str) -> list[str]:
 
 
 class Setting[T]:
-    def __init__(self, config_key: str, setter: Callable[["Configurable", T], None] | None = None, getter: Callable[["Configurable"], T] | None = None):
+    def __init__(
+        self,
+        config_key: str,
+        setter: Callable[["Configurable", T], None] | None = None,
+        getter: Callable[["Configurable"], T] | None = None,
+    ):
         self.config_key = config_key
         self.setter = setter
         self.getter = getter
@@ -30,7 +35,11 @@ class Setting[T]:
         return getattr(owner, self.config_key)
 
 
-def setting(config_key: str, setter: Callable[["Configurable", Any], None] | None = None, getter: Callable[["Configurable"], Any] | None = None) -> Setting[Any]:
+def setting(
+    config_key: str,
+    setter: Callable[["Configurable", Any], None] | None = None,
+    getter: Callable[["Configurable"], Any] | None = None,
+) -> Setting[Any]:
     return Setting(config_key, setter, getter)
 
 
