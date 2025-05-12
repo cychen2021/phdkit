@@ -8,8 +8,10 @@ def __split_key(key: str) -> list[str]:
 
 
 class Setting[T]:
-    def __init__(self, config_key: str):
+    def __init__(self, config_key: str, setter: Callable[["Configurable", T], None] | None = None, getter: Callable[["Configurable"], T] | None = None):
         self.config_key = config_key
+        self.setter = setter
+        self.getter = getter
 
     def __set_name__(self, owner: "Configurable", name: str):
         owner.settings[self.config_key] = name
@@ -17,14 +19,19 @@ class Setting[T]:
     def __set__(self, owner: "Configurable", value: T):
         if value is not None:
             assert isinstance(value, str)
-        setattr(owner, self.config_key, value)
+        if self.setter is not None:
+            self.setter(owner, value)
+        else:
+            setattr(owner, self.config_key, value)
 
     def __get__(self, owner: "Configurable", owner_type: Type["Configurable"]) -> T:
+        if self.getter is not None:
+            return self.getter(owner)
         return getattr(owner, self.config_key)
 
 
-def setting(config_key: str) -> Setting[Any]:
-    return setting(config_key)
+def setting(config_key: str, setter: Callable[["Configurable", Any], None] | None = None, getter: Callable[["Configurable"], Any] | None = None) -> Setting[Any]:
+    return Setting(config_key, setter, getter)
 
 
 class Configurable(ABC):
