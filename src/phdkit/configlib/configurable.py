@@ -6,26 +6,37 @@ from abc import ABC
 def __split_key(key: str) -> list[str]:
     return key.split(".")
 
+
 class Setting[T]:
     def __init__(self, config_key: str):
         self.config_key = config_key
 
     def __set_name__(self, owner: "Configurable", name: str):
         owner.settings[self.config_key] = name
+
     def __set__(self, owner: "Configurable", value: T):
         if value is not None:
             assert isinstance(value, str)
         setattr(owner, self.config_key, value)
+
     def __get__(self, owner: "Configurable", owner_type: Type["Configurable"]) -> T:
         return getattr(owner, self.config_key)
+
 
 def setting(config_key: str) -> Setting[Any]:
     return setting(config_key)
 
+
 class Configurable(ABC):
     """A configurable."""
 
-    def __init__(self, read_config: ConfigReader, read_env: ConfigReader | None = None, *, config_key: str = ""):
+    def __init__(
+        self,
+        read_config: ConfigReader,
+        read_env: ConfigReader | None = None,
+        *,
+        config_key: str = "",
+    ):
         """Configure a class with settings from a configuration file.
 
         This decorator allows you to define a class with settings that can be loaded from configuration
@@ -46,10 +57,7 @@ class Configurable(ABC):
         self.config_key = config_key
         self.settings: dict[str, str] = {}
 
-
-    def load_config(
-        self, config_file: str | None = None, env_file: str | None = None
-    ):
+    def load_config(self, config_file: str | None = None, env_file: str | None = None):
         """Load the configuration from files and set the settings.
 
         If not provided, the config will be loaded from the default locations.
@@ -58,6 +66,7 @@ class Configurable(ABC):
             config_file: The path to the configuration file.
             env_file: The path to the environment file. Secret values should be loaded from this file.
         """
+
         def __load_key(key: str, config: dict):
             current_config = config
             for key in __split_key(key):
@@ -87,4 +96,3 @@ class Configurable(ABC):
                 raise ValueError(
                     "The configurable doesn't accept a separate environment file"
                 )
-
