@@ -138,21 +138,23 @@ class __Config:
 Config = __Config()
 
 
-class Setting[S, T]:
-    def __init__(
-        self,
-        fget: Callable[[S], T] | None = None,
-        fset: Callable[[S, T], None] | None = None,
-    ):
-        self.fset = fset
-        self.fget = fget
-        self.__property = property(fget=fget, fset=fset)
+# class Setting[S, T]:
+#     def __init__(
+#         self,
+#         fget: Callable[[S], T] | None = None,
+#         fset: Callable[[S, T], None] | None = None,
+#     ):
+#         self.fset = fset
+#         self.fget = fget
+#         self.__property = property(fget=fget, fset=fset)
 
-    def __set__(self, owner: S, value: T):
-        self.__property.__set__(owner, value)
+#     def __set__(self, owner: S, value: T):
+#         self.__property.__set__(owner, value)
 
-    def __get__(self, owner: S, owner_type: Type[S]) -> T:
-        return self.__property.__get__(owner, owner_type)
+#     def __get__(self, owner: S, owner_type: Type[S]) -> T:
+#         return self.__property.__get__(owner, owner_type)
+
+Setting = property
 
 
 def configurable(
@@ -193,9 +195,9 @@ class __setting:
     def __init__(self):
         pass
 
-    def __call__[T](
+    def __call__(
         self, config_key: str
-    ) -> Callable[[Callable[[Any], T]], Setting[Any, T]]:
+    ) -> Callable[[Callable[[Any], Any]], Setting]:
         """Decorator to register a method as a setting.
 
         This decorator registers the method as a setting with a config key. It will ignore the definition of the method
@@ -206,14 +208,14 @@ class __setting:
             method: The method to register as a setting.
         """
 
-        def decorator(method: Callable[[Any], T]) -> Setting[Any, T]:
+        def decorator(method: Callable[[Any], Any]) -> Setting:
             name = method.__name__
             attr_name = f"__setting_{name}"
 
-            def fget(the_self: Any) -> T:
+            def fget(the_self: Any) -> Any:
                 return getattr(the_self, attr_name)
 
-            def fset(the_self: Any, value: T):
+            def fset(the_self: Any, value: Any):
                 setattr(the_self, attr_name, value)
 
             s = Setting(fget=fget, fset=fset)
@@ -229,11 +231,7 @@ class __setting:
         def decorator(method: Callable[[U, T], None]) -> Setting[U, T]:
             try:
                 s = Config.get_setting(type(method.__self__), config_key)
-                s = Setting(
-                    fget=s.fget,
-                    fset=method,
-                )
-                delattr(method.__self__, method.__name__)
+                s = s.setter(method)
             except ValueError:
                 s = Setting(fget=None, fset=method)
             setattr(method.__self__, method.__name__, s)
@@ -248,10 +246,7 @@ class __setting:
         def decorator(method: Callable[[U], T]) -> Setting[U, T]:
             try:
                 s = Config.get_setting(type(method.__self__), config_key)
-                s = Setting(
-                    fget=method,
-                    fset=s.fset,
-                )
+                s = s.getter(method)
                 delattr(method.__self__, method.__name__)
             except ValueError:
                 s = Setting(fget=method, fset=None)
