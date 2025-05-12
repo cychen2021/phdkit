@@ -5,8 +5,6 @@ from enum import Enum
 import sys
 from datetime import datetime
 import io
-import os
-import tomllib
 from .notifier import EmailNotifier
 
 
