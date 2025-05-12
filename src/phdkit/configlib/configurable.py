@@ -7,7 +7,7 @@ def __split_key(key: str) -> list[str]:
     return key.split(".")
 
 
-class Configurable[T](Any, Protocol):
+class Configurable[T](Protocol):
     """A class that has been make configurable.
 
     This class is only for type hinting purposes. It is not meant to be used directly.
