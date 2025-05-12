@@ -167,11 +167,8 @@ class Setting[S, T]:
     def __get__(self, owner: S, owner_type: Type[S]) -> T:
         return self.__property.__get__(owner, owner_type)
     
-    def setter(self, fset: Callable[[S, T], None]) -> "Setting[S, T]":
+    def setter(self) -> Callable[[Callable[[S, T], None]], "Setting[S, T]"]:
         """Set the setter method for the setting.
-
-        Args:
-            fset: The setter method to set.
         """
         if self.fset is not None:
             raise ValueError(
@@ -181,27 +178,37 @@ class Setting[S, T]:
             raise ValueError(
                 "Setter method not set. Please use the setter method to set the setter method."
             )
-        self.fset = fset
-        self.__property = property(self.fget, fset)
-        return self
+        def decorator(fset: Callable[[S, T], None]) -> "Setting[S, T]":
+            if self.fget is None:
+                raise ValueError(
+                    "Setter method not set. Please use the setter method to set the setter method."
+                )
+            self.fset = fset
+            self.__property = property(self.fget, fset)
+            return self
+        return decorator
 
-    def getter(self, fget: Callable[[S], T]) -> "Setting[S, T]":
+    def getter(self) -> Callable[[Callable[[S], T]], "Setting[S, T]"]:
         """Set the getter method for the setting.
-
-        Args:
-            fget: The getter method to set.
         """
-        if self.fget is not None:
-            raise ValueError(
-                "Getter method already set. Please use the getter method to set the getter method."
-            )
-        if self.fset is None:
-            raise ValueError(
-                "Getter method not set. Please use the getter method to set the getter method."
-            )
-        self.fget = fget
-        self.__property = property(fget, self.fset)
-        return self
+        def decorator(fget: Callable[[S], T]) -> "Setting[S, T]":
+            if self.fset is None:
+                raise ValueError(
+                    "Getter method not set. Please use the getter method to set the getter method."
+                )
+            if self.fget is not None:
+                raise ValueError(
+                    "Getter method already set. Please use the getter method to set the getter method."
+                )
+            if self.fset is None:
+                raise ValueError(
+                    "Getter method not set. Please use the getter method to set the getter method."
+                )
+            self.fget = fget
+            self.__property = property(fget, self.fset)
+            return self
+        return decorator
+
 
 
 def configurable(
