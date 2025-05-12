@@ -178,7 +178,7 @@ class Setting[S, T]:
             raise ValueError(
                 "Setter method not set. Please use the setter method to set the setter method."
             )
-        def decorator(fset: Callable[[S, T], None]):
+        def decorator(fset: Callable[[S, T], None]) -> None:
             if self.fget is None:
                 raise ValueError(
                     "Setter method not set. Please use the setter method to set the setter method."
@@ -191,7 +191,7 @@ class Setting[S, T]:
     def getter(self) -> Callable[[Callable[[S], T]], None]:
         """Set the getter method for the setting.
         """
-        def decorator(fget: Callable[[S], T]):
+        def decorator(fget: Callable[[S], T]) -> None:
             if self.fset is None:
                 raise ValueError(
                     "Getter method not set. Please use the getter method to set the getter method."
@@ -206,6 +206,7 @@ class Setting[S, T]:
                 )
             self.fget = fget
             self.__property = property(fget, self.fset)
+            return None
         return decorator
 
 
