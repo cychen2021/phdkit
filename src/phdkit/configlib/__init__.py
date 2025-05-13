@@ -11,8 +11,23 @@ handle the built-in `property` decorator in an ad-hoc way. The current status is
 best we can do.
 
 Example usage:
+
 ```python
-... # TODO: Add example usage
+@configurable(load_config=TomlReader(), load_env=TomlReader())
+class SomeApp:
+    @setting("auto_gen")
+    def auto_generated_getter_and_setter(self) -> bool: ...
+
+    @setting.getter("manuall")
+    def manual_setter_and_getter(self) -> bool:
+        return self._manual
+
+    @manual_setter_and_getter.setter("manual")
+    def manual_setter_and_getter(self, value: bool) -> None:
+        self._manual = value
+if __name__ == "__main__":
+    app = SomeApp()
+    config[app].load("config.toml", "env.toml")
 ```
 
 Attributes:
