@@ -55,6 +55,7 @@ class __Config:
                     env_file: The path to the environment file. Secret values should be loaded from this file.
                 """
                 Config.load(instance, config_file, env_file)
+
         return __Load()
 
     def register[T](

@@ -40,4 +40,12 @@ from .configurable import setting, configurable, Config, config
 from .tomlreader import TomlReader
 from .configreader import ConfigLoader
 
-__all__ = ["setting", "TomlReader", "ConfigLoader", "configurable", "Config", "setting", "config"]
+__all__ = [
+    "setting",
+    "TomlReader",
+    "ConfigLoader",
+    "configurable",
+    "Config",
+    "setting",
+    "config",
+]
