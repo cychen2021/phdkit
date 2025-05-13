@@ -264,7 +264,7 @@ class __Descriptor[I, V](Protocol):
 
     def __set__(self, instance: I, value: V) -> None: ...
 
-    def setter(self: Self, fset: Callable[[I, V], None]) -> None: ...
+    def setter(self: Self, fset: Callable[[I, V], None]) -> "__Descriptor": ...
 
 
 class __setting:
@@ -338,7 +338,7 @@ class __setting:
                     )
                 self.setting.fset(instance, value)
 
-            def setter(self: Self, fset: Callable[[I, V], None]) -> None:
+            def setter(self: Self, fset: Callable[[I, V], None]) -> "__decorator":
                 # TODO: Improve the error message
                 raise NotImplementedError(
                     f"Setting does not have a setter method. Please implement a setter method for this setting."
@@ -393,9 +393,10 @@ class __setting:
                     )
                 self.setting.fset(instance, value)
 
-            def setter(self: Self, fset: Callable[[I, V], None]) -> None:
+            def setter(self: Self, fset: Callable[[I, V], None]) -> "__getter":
                 """Decorator to register a method as a setting setter."""
                 self.setting.fset = fset
+                return self
 
         def __wrapper(method: Callable[[T], S]) -> __getter[T, S]:
             return __getter(method)
