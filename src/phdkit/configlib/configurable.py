@@ -29,7 +29,8 @@ class __Config:
 
     def __init__(self):
         self.registry: dict[
-            type, tuple[str, ConfigLoader | None, ConfigLoader | None, dict[str, "Setting"]]
+            type,
+            tuple[str, ConfigLoader | None, ConfigLoader | None, dict[str, "Setting"]],
         ] = {}
 
     def __getitem__(self, instance: Any):
@@ -63,7 +64,13 @@ class __Config:
                 """
                 Config.load(instance, config_file, env_file)
 
-            def update(self, *,load_config: ConfigLoader | None = None, load_env: ConfigLoader | None = None, config_key: str = ""):
+            def update(
+                self,
+                *,
+                load_config: ConfigLoader | None = None,
+                load_env: ConfigLoader | None = None,
+                config_key: str = "",
+            ):
                 """Update the configuration set-ups for a class.
 
                 This method is equivalent to the `update` method of the `Config` class.
@@ -74,7 +81,12 @@ class __Config:
                     load_env: A callable that reads the secret config values and returns a dictionary.
                     config_key: The config key to use for this class. If provided, only the parts of the config file that correspond to this key will be loaded.
                 """
-                Config.update(instance, load_config=load_config, load_env=load_env, config_key=config_key)
+                Config.update(
+                    instance,
+                    load_config=load_config,
+                    load_env=load_env,
+                    config_key=config_key,
+                )
 
         return __SingleConfig()
 
@@ -121,17 +133,13 @@ class __Config:
         """
 
         if klass not in self.registry:
-            self.register(
-                klass, load_config, load_env=load_env, config_key=config_key
-            )
+            self.register(klass, load_config, load_env=load_env, config_key=config_key)
         else:
             (config_key0, load_config0, load_env0, settings) = self.registry[klass]
             config_key1 = config_key if config_key else config_key0
             load_config1 = load_config if load_config is not None else load_config0
             load_env1 = load_env if load_env is not None else load_env0
-            self.registry[klass] = (
-                config_key1, load_config1, load_env1, settings
-            )
+            self.registry[klass] = (config_key1, load_config1, load_env1, settings)
 
     def contains[T](self, klass: Type[T], config_key: str) -> bool:
         """Check if a class is registered with a config key.
@@ -201,6 +209,7 @@ class __Config:
             for key in __split_key(key):
                 current_config = current_config[key]
             return current_config
+
         if load_config is None:
             raise ValueError(
                 f"Config file loader is not provided for class {klass}. Please provide one."
@@ -290,10 +299,13 @@ def configurable(
     """
 
     def decorator[T: Type](cls: T) -> T:
-        Config.update(cls, load_config=load_config, load_env=load_env, config_key=config_key)
+        Config.update(
+            cls, load_config=load_config, load_env=load_env, config_key=config_key
+        )
         return cls
 
     return decorator
+
 
 class Descriptor[I, V](Protocol):
     def __init__(self, method: Callable[[I], V]) -> None: ...
