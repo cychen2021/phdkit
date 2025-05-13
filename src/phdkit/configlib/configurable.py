@@ -266,7 +266,9 @@ class __DescriptorSetter[I, V](Protocol):
     @overload
     def __get__(self, instance: I, owner: Type[I]) -> V: ...
 
-    def __get__(self, instance: I | None, owner: Type[I]) -> "V | __DescriptorSetter": ...
+    def __get__(
+        self, instance: I | None, owner: Type[I]
+    ) -> "V | __DescriptorSetter": ...
 
     def __set__(self, instance: I, value: V) -> None: ...
 
@@ -378,7 +380,6 @@ class __setting:
                         f"Setting {self.method.__name__} does not have a getter method. Please implement a getter method for this setting."
                     )
                 return self.setting.fget(instance)
-
 
             def __get__(self, instance: I | None, owner: Type[I]) -> "V | __setter":
                 raise NotImplementedError(
