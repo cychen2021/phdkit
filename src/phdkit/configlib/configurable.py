@@ -403,11 +403,11 @@ class __setting:
     ) -> Callable[[Callable[[T], S]], __Descriptor[T, S]]:
         """Decorator to register a method as a setting getter."""
 
-        class __getter[V]:
-            def __init__(self, method: Callable[[Any], V]):
+        class __getter[I, V]:
+            def __init__(self, method: Callable[[I], V]):
                 self.method = method
 
-            def __set_name__(self, owner: Type[Any], name: str):
+            def __set_name__(self, owner: Type[I], name: str):
                 try:
                     s = Config.get_setting(owner, config_key)
                     s = Setting(fget=self.method, fset=s.fset)
@@ -417,7 +417,7 @@ class __setting:
                 Config.add_setting(owner, config_key, s)
 
             @overload
-            def __get__(self, instance: object, owner: Type[Any]) -> V:
+            def __get__(self, instance: I, owner: Type[I]) -> V:
                 if self.setting.fget is None:
                     raise NotImplementedError(
                         f"Setting {self.method.__name__} does not have a getter method. Please implement a getter method for this setting."
@@ -425,17 +425,17 @@ class __setting:
                 return self.setting.fget(instance)
 
             @overload
-            def __get__(self, instance: None, owner: Type[Any]) -> "__getter":
+            def __get__(self, instance: None, owner: Type[I]) -> "__getter":
                 raise NotImplementedError(
                     f"Setting {self.method.__name__} does not have a getter method. Please implement a getter method for this setting."
                 )
 
-            def __get__(self, instance: object | None, owner: Type[Any]) -> Any:
+            def __get__(self, instance: I | None, owner: Type[I]) -> "V | __getter":
                 raise NotImplementedError(
                     f"Setting {self.method.__name__} does not have a getter method. Please implement a getter method for this setting."
                 )
 
-            def __set__(self: Self, instance: object, value: Any):
+            def __set__(self, instance: I, value: V):
                 if self.setting.fset is None:
                     raise NotImplementedError(
                         f"Setting {self.method.__name__} does not have a setter method. Please implement a setter method for this setting."
