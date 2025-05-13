@@ -17,6 +17,7 @@ Example usage:
 
 Attributes:
     Config: The singleton that manages configurations.
+    config: An alias for Config.
     setting: A decorator to mark a method as a setting.
 """
 

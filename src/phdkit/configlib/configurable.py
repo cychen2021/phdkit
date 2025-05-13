@@ -25,6 +25,28 @@ class __Config:
             type, tuple[str, ConfigLoader, ConfigLoader | None, dict[str, "Setting"]]
         ] = {}
 
+    def __getitem__(self, instance: Any):
+        """Another form of the `load` method.
+
+        This method returns an object that loads the configuration for the given instance as another form of the `load` method.
+
+        Example usage:
+
+        ```python
+        config[obj].load("config.toml", "env.toml")
+        ```
+
+        equivalent to
+
+        ```python
+        Config.load(obj, "config.toml", "env.toml")
+        ```
+        """
+        class __Load:
+            def load(self, config_file: str | None = None, env_file: str | None = None):
+                Config.load(instance, config_file, env_file)
+        return __Load()
+
     def register[T](
         self,
         klass: Type[T],
@@ -136,6 +158,7 @@ class __Config:
 
 
 Config = __Config()
+config = __Config()
 
 
 Setting = property
