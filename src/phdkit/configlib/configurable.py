@@ -4,6 +4,7 @@ from typing import (
     Callable,
     Any,
     overload,
+    TYPE_CHECKING,
     Protocol,
     Self,
 )
@@ -245,33 +246,33 @@ def configurable(
 
     return decorator
 
+if TYPE_CHECKING:
+    class Descriptor[I, V](Protocol):
+        def __init__(self, method: Callable[[I], V]) -> None: ...
 
-class __Descriptor[I, V](Protocol):
-    def __init__(self, method: Callable[[I], V]) -> None: ...
+        def __set_name__(self, owner: Type[I], name: str) -> None: ...
 
-    def __set_name__(self, owner: Type[I], name: str) -> None: ...
+        @overload
+        def __get__(self, instance: None, owner: Type[I]) -> "Descriptor": ...
 
-    @overload
-    def __get__(self, instance: None, owner: Type[I]) -> "__Descriptor": ...
+        @overload
+        def __get__(self, instance: I, owner: Type[I]) -> V: ...
 
-    @overload
-    def __get__(self, instance: I, owner: Type[I]) -> V: ...
+        def __get__(self, instance: I | None, owner: Type[I]) -> "V | Descriptor": ...
 
-    def __get__(self, instance: I | None, owner: Type[I]) -> "V | __Descriptor": ...
+        def __set__(self, instance: I, value: V) -> None: ...
 
-    def __set__(self, instance: I, value: V) -> None: ...
+        def setter(self, fset: Callable[[I, V], None]) -> "Descriptor[I, V]":
+            """Decorator to register a method as a setting setter.
 
-    def setter(self, fset: Callable[[I, V], None]) -> "__Descriptor[I, V]":
-        """Decorator to register a method as a setting setter.
+            Note that due to unknown reasons, the setter must be of a different name of the getter, or otherwise
+            the type checkers (at least the one used by VSCode) will report a obscured method name error. This is
+            different from the built-in `property.setter` decorator.
 
-        Note that due to unknown reasons, the setter must be of a different name of the getter, or otherwise
-        the type checkers (at least the one used by VSCode) will report a obscured method name error. This is
-        different from the built-in `property.setter` decorator.
-
-        Args:
-            fset: The setter method to register as a setting setter.
-        """
-        ...
+            Args:
+                fset: The setter method to register as a setting setter.
+            """
+            ...
 
 
 class __setting:
@@ -290,7 +291,7 @@ class __setting:
 
     def __call__[T, S](
         self, config_key: str
-    ) -> Callable[[Callable[[T], S]], __Descriptor[T, S]]:
+    ) -> Callable[[Callable[[T], S]], Descriptor[T, S]]:
         """Decorator to register a method as a setting.
 
         This decorator registers the method as a setting with a config key. It will ignore the definition of the method
@@ -358,7 +359,7 @@ class __setting:
 
     def getter[T, S](
         self, config_key: str
-    ) -> Callable[[Callable[[T], S]], __Descriptor[T, S]]:
+    ) -> Callable[[Callable[[T], S]], Descriptor[T, S]]:
         """Decorator to register a method as a setting getter."""
 
         class __getter[I, V]:
