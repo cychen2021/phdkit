@@ -29,7 +29,7 @@ class __Config:
 
     def __init__(self):
         self.registry: dict[
-            type, tuple[str, ConfigLoader, ConfigLoader | None, dict[str, "Setting"]]
+            type, tuple[str, ConfigLoader | None, ConfigLoader | None, dict[str, "Setting"]]
         ] = {}
 
     def __getitem__(self, instance: Any):
@@ -68,7 +68,7 @@ class __Config:
     def register[T](
         self,
         klass: Type[T],
-        load_config: ConfigLoader,
+        load_config: ConfigLoader | None = None,
         *,
         load_env: ConfigLoader | None = None,
         config_key: str = "",
@@ -99,17 +99,15 @@ class __Config:
         This method updates the config registry of a class with a optional config key. `load_config` will be used to load the config file
         and `load_env`, if provided, will be used to load secret values from a separate config file or environment variables.
         A class will be registered if it isn't in the registries before.
-        
+
         Args:
             klass: The class to register
             load_config: A callable that reads the configuration file and returns a dictionary.
             load_env: A callable that reads the secret config values and returns a dictionary.
             config_key: The config key to use for this class. If provided, only the parts of the config file that correspond to this key will be loaded.
         """
-        
+
         if klass not in self.registry:
-            if load_config is None:
-                raise ValueError("`load_config` must be provided to register a class")
             self.register(
                 klass, load_config, load_env=load_env, config_key=config_key
             )
@@ -190,7 +188,10 @@ class __Config:
             for key in __split_key(key):
                 current_config = current_config[key]
             return current_config
-
+        if load_config is None:
+            raise ValueError(
+                f"Config file loader is not provided for class {klass}. Please provide one."
+            )
         config = load_config(config_file)
         if config_key:
             route = __split_key(config_key)
