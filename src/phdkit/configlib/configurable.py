@@ -235,7 +235,6 @@ class __setting:
                 setattr(the_self, attr_name, value)
 
             s = Setting(fget=fget, fset=fset)
-            setattr(method.__self__, name, s)
             Config.add_setting(type(method.__self__), config_key, s)
             return s
 
@@ -252,7 +251,6 @@ class __setting:
                 s = s.setter(method)
             except ValueError:
                 s = Setting(fget=None, fset=method)
-            setattr(method.__self__, method.__name__, s)
             Config.add_setting(type(method.__self__), config_key, s)
             return s
 
@@ -270,7 +268,6 @@ class __setting:
                 delattr(method.__self__, method.__name__)
             except ValueError:
                 s = Setting(fget=method, fset=None)
-            setattr(method.__self__, method.__name__, s)
             Config.add_setting(type(method.__self__), config_key, s)
             return s
 
