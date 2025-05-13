@@ -3,7 +3,6 @@ from typing import (
     Type,
     Callable,
     Any,
-    TYPE_CHECKING,
     overload,
     Protocol,
     Self,
