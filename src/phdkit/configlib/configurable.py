@@ -42,8 +42,18 @@ class __Config:
         Config.load(obj, "config.toml", "env.toml")
         ```
         """
+
         class __Load:
             def load(self, config_file: str | None = None, env_file: str | None = None):
+                """Load the configuration from files and set the settings.
+
+                This method is equivalent to the `load` method of the `Config` class.
+                If not provided, the config will be loaded from the default locations.
+
+                Args:
+                    config_file: The path to the configuration file.
+                    env_file: The path to the environment file. Secret values should be loaded from this file.
+                """
                 Config.load(instance, config_file, env_file)
         return __Load()
 
