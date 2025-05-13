@@ -17,8 +17,8 @@ class SomeApp:
     def manual_setter_and_getter(self) -> bool:
         return self._manual
 
-    @manual_setter_and_getter.setter("manual")
-    def manual_setter_and_getter(self, value: bool) -> None:
+    @manual_setter_and_getter.setter
+    def set_manual_setter_and_getter(self, value: bool) -> None:
         self._manual = value
 if __name__ == "__main__":
     app = SomeApp()

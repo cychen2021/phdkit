@@ -7,7 +7,6 @@ from typing import (
     overload,
     Protocol,
     Self,
-    TypeVar,
 )
 from .configreader import ConfigLoader
 
@@ -264,7 +263,17 @@ class __Descriptor[I, V](Protocol):
 
     def __set__(self, instance: I, value: V) -> None: ...
 
-    def setter(self, fset: Callable[[I, V], None]) -> "__Descriptor[I, V]": ...
+    def setter(self, fset: Callable[[I, V], None]) -> "__Descriptor[I, V]":
+        """Decorator to register a method as a setting setter.
+
+        Note that due to unknown reasons, the setter must be of a different name of the getter, or otherwise
+        the type checkers (at least the one used by VSCode) will report a obscured method name error. This is 
+        different from the built-in `property.setter` decorator.
+
+        Args:
+            fset: The setter method to register as a setting setter.
+        """
+        ...
 
 
 class __setting:
@@ -339,9 +348,8 @@ class __setting:
                 self.setting.fset(instance, value)
 
             def setter(self: Self, fset: Callable[[I, V], None]) -> "__decorator[I, V]":
-                # TODO: Improve the error message
                 raise NotImplementedError(
-                    f"Setting does not have a setter method. Please implement a setter method for this setting."
+                    f"Setting {self.method.__name__} already has a setter method. You cannot add another!"
                 )
 
         def __wrapper(method: Callable[[T], S]) -> __decorator[T, S]:
@@ -394,7 +402,6 @@ class __setting:
                 self.setting.fset(instance, value)
 
             def setter(self, fset: Callable[[I, V], None]) -> "__getter[I, V]":
-                """Decorator to register a method as a setting setter."""
                 self.setting.fset = fset
                 return self
 
