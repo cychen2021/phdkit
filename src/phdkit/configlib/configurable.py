@@ -50,7 +50,7 @@ class __Config:
         ```
         """
 
-        class __Load:
+        class __SingleConfig:
             def load(self, config_file: str | None = None, env_file: str | None = None):
                 """Load the configuration from files and set the settings.
 
@@ -63,7 +63,20 @@ class __Config:
                 """
                 Config.load(instance, config_file, env_file)
 
-        return __Load()
+            def update(self, *,load_config: ConfigLoader | None = None, load_env: ConfigLoader | None = None, config_key: str = ""):
+                """Update the configuration set-ups for a class.
+
+                This method is equivalent to the `update` method of the `Config` class.
+                If not provided, the config will be loaded from the default locations.
+
+                Args:
+                    load_config: A callable that reads the configuration file and returns a dictionary.
+                    load_env: A callable that reads the secret config values and returns a dictionary.
+                    config_key: The config key to use for this class. If provided, only the parts of the config file that correspond to this key will be loaded.
+                """
+                Config.update(instance, load_config=load_config, load_env=load_env, config_key=config_key)
+
+        return __SingleConfig()
 
     def register[T](
         self,
