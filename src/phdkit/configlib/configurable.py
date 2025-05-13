@@ -261,12 +261,12 @@ class __DescriptorSetter[I, V](Protocol):
     def __set_name__(self, owner: Type[I], name: str) -> None: ...
 
     @overload
-    def __get__(self, instance: None, owner: Type[I]) -> "__Descriptor": ...
+    def __get__(self, instance: None, owner: Type[I]) -> "__DescriptorSetter": ...
 
     @overload
     def __get__(self, instance: I, owner: Type[I]) -> V: ...
 
-    def __get__(self, instance: I | None, owner: Type[I]) -> "V | __Descriptor": ...
+    def __get__(self, instance: I | None, owner: Type[I]) -> "V | __DescriptorSetter": ...
 
     def __set__(self, instance: I, value: V) -> None: ...
 
@@ -347,16 +347,16 @@ class __setting:
 
         return __wrapper
 
-    def setter(
+    def setter[T, S](
         self, config_key: str
-    ) -> Callable[[Callable[[Any, Any], None]], __DescriptorSetter[Any, Any]]:
+    ) -> Callable[[Callable[[T, S], None]], __DescriptorSetter[T, S]]:
         """Decorator to register a method as a setting setter."""
 
-        class __setter[V]:
-            def __init__(self, method: Callable[[Any, V], None]):
+        class __setter[I, V]:
+            def __init__(self, method: Callable[[I, V], None]):
                 self.method = method
 
-            def __set_name__(self, owner: Type[Any], name: str):
+            def __set_name__(self, owner: Type[I], name: str):
                 try:
                     s = Config.get_setting(owner, config_key)
                     s = Setting(fget=s.fget, fset=self.method)
@@ -366,32 +366,33 @@ class __setting:
                 Config.add_setting(owner, config_key, self.setting)
 
             @overload
-            def __get__(self, instance: object, owner: Type[Any]) -> V:
+            def __get__(self, instance: None, owner: Type[I]) -> "__setter":
+                raise NotImplementedError(
+                    f"Setting {self.method.__name__} does not have a getter method. Please implement a getter method for this setting."
+                )
+
+            @overload
+            def __get__(self, instance: I, owner: Type[I]) -> V:
                 if self.setting.fget is None:
                     raise NotImplementedError(
                         f"Setting {self.method.__name__} does not have a getter method. Please implement a getter method for this setting."
                     )
                 return self.setting.fget(instance)
 
-            @overload
-            def __get__(self, instance: None, owner: Type[Any]) -> "__setter":
+
+            def __get__(self, instance: I | None, owner: Type[I]) -> "V | __setter":
                 raise NotImplementedError(
                     f"Setting {self.method.__name__} does not have a getter method. Please implement a getter method for this setting."
                 )
 
-            def __get__(self, instance: object | None, owner: Type[Any]) -> Any:
-                raise NotImplementedError(
-                    f"Setting {self.method.__name__} does not have a getter method. Please implement a getter method for this setting."
-                )
-
-            def __set__(self: Self, instance: object, value: Any):
+            def __set__(self: Self, instance: I, value: V):
                 if self.setting.fset is None:
                     raise NotImplementedError(
                         f"Setting {self.method.__name__} does not have a setter method. Please implement a setter method for this setting."
                     )
                 self.setting.fset(instance, value)
 
-        def __wrapper(method: Callable[[Any, Any], None]) -> __setter:
+        def __wrapper(method: Callable[[T, S], None]) -> __setter[T, S]:
             return __setter(method)
 
         return __wrapper
