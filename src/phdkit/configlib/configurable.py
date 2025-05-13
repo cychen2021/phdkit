@@ -352,6 +352,7 @@ class __setting:
                     f"Setting {self.method.__name__} already has a setter method. You cannot add another!"
                 )
 
+        # The wrapper is only to please the type checker
         def __wrapper(method: Callable[[T], S]) -> __decorator[T, S]:
             return __decorator(method)
 
