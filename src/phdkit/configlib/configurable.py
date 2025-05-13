@@ -442,7 +442,7 @@ class __setting:
                     )
                 self.setting.fset(instance, value)
 
-        def __wrapper(method: Callable[[T], S]) -> __Descriptor[T, S]:
+        def __wrapper(method: Callable[[T], S]) -> __getter[T, S]:
             return __getter(method)
 
         return __wrapper
