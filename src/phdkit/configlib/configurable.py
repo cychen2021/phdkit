@@ -86,6 +86,42 @@ class __Config:
         """
         self.registry[klass] = (config_key, load_config, load_env, {})
 
+    def update[T](
+        self,
+        klass: Type[T],
+        *,
+        load_config: ConfigLoader | None = None,
+        load_env: ConfigLoader | None = None,
+        config_key: str = "",
+    ):
+        """Update the config registry of a class.
+
+        This method updates the config registry of a class with a optional config key. `load_config` will be used to load the config file
+        and `load_env`, if provided, will be used to load secret values from a separate config file or environment variables.
+        A class will be registered if it isn't in the registries before.
+        
+        Args:
+            klass: The class to register
+            load_config: A callable that reads the configuration file and returns a dictionary.
+            load_env: A callable that reads the secret config values and returns a dictionary.
+            config_key: The config key to use for this class. If provided, only the parts of the config file that correspond to this key will be loaded.
+        """
+        
+        if klass not in self.registry:
+            if load_config is None:
+                raise ValueError("`load_config` must be provided to register a class")
+            self.register(
+                klass, load_config, load_env=load_env, config_key=config_key
+            )
+        else:
+            (config_key0, load_config0, load_env0, settings) = self.registry[klass]
+            config_key1 = config_key if config_key else config_key0
+            load_config1 = load_config if load_config is not None else load_config0
+            load_env1 = load_env if load_env is not None else load_env0
+            self.registry[klass] = (
+                config_key1, load_config1, load_env1, settings
+            )
+
     def contains[T](self, klass: Type[T], config_key: str) -> bool:
         """Check if a class is registered with a config key.
 
@@ -240,7 +276,7 @@ def configurable(
     """
 
     def decorator[T: Type](cls: T) -> T:
-        Config.register(cls, load_config, load_env=load_env, config_key=config_key)
+        Config.update(cls, load_config=load_config, load_env=load_env, config_key=config_key)
         return cls
 
     return decorator
@@ -316,6 +352,9 @@ class __setting:
                 self.setting = s
 
             def __set_name__(self, owner: Type[I], name: str):
+                # The `setting` decorator will be invoked before the `configurable` decorator.
+                #  We must guarantee the existence of the registry.
+                Config.update(owner)
                 Config.add_setting(owner, config_key, self.setting)
 
             @overload
@@ -365,6 +404,7 @@ class __setting:
                 self.method = method
 
             def __set_name__(self, owner: Type[I], name: str):
+                Config.update(owner)
                 if Config.contains(owner, config_key):
                     raise ValueError(
                         f"Config key {config_key} is already registered for class {owner}"
