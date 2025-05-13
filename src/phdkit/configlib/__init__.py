@@ -6,7 +6,7 @@ and setting items. The class will be automatically populated with the values fro
 configuration file.
 
 Note that type checkers (at least the one that VS Code uses) cannot infer the type of
-the setting items correctly for current implementation. It seems that the type checkers
+the setting items correctly for the current implementation. It seems that the type checkers
 handle the built-in `property` decorator in an ad-hoc way. The current status is the
 best we can do.
 
