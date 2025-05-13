@@ -267,7 +267,7 @@ class __Descriptor[I, V](Protocol):
         """Decorator to register a method as a setting setter.
 
         Note that due to unknown reasons, the setter must be of a different name of the getter, or otherwise
-        the type checkers (at least the one used by VSCode) will report a obscured method name error. This is 
+        the type checkers (at least the one used by VSCode) will report a obscured method name error. This is
         different from the built-in `property.setter` decorator.
 
         Args:
