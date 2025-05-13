@@ -1,5 +1,5 @@
 from threading import Lock
-from typing import Type, Callable, Any
+from typing import Type, Callable, Any, type_check_only, overload, Protocol, Self, TypeVar
 from .configreader import ConfigLoader
 
 
@@ -198,6 +198,19 @@ def configurable(
 
     return decorator
 
+@type_check_only
+class __GenericDescriptor[T](Protocol):
+    def __set_name__(self, owner: Type[Any], name: str) -> None: ...
+
+    @overload
+    def __get__(self, instance: None, owner: Type[Any]) -> "__GenericDescriptor[T]": ...
+
+    @overload
+    def __get__(self, instance: object, owner: Type[Any]) -> T: ...
+
+    def __get__(self, instance: object | None, owner: Type[Any]) -> Any: ...
+
+    def __set__(self, instance: object, value: T) -> None: ...
 
 class __setting:
     _singleton = None
@@ -213,7 +226,7 @@ class __setting:
     def __init__(self):
         pass
 
-    def __call__(self, config_key: str) -> Callable[[Callable[[Any], Any]], Setting]:
+    def __call__(self, config_key: str) -> Type[__GenericDescriptor[Setting]]:
         """Decorator to register a method as a setting.
 
         This decorator registers the method as a setting with a config key. It will ignore the definition of the method
@@ -224,54 +237,124 @@ class __setting:
             method: The method to register as a setting.
         """
 
-        def decorator(method: Callable[[Any], Any]) -> Setting:
-            name = method.__name__
-            attr_name = f"__setting_{name}"
+        class __decorator:
+            def __init__(self, method: Callable[[Any], Any]):
+                self.method = method
 
-            def fget(the_self: Any) -> Any:
-                return getattr(the_self, attr_name)
+            def __set_name__(self, owner: Type[Any], name: str): pass
 
-            def fset(the_self: Any, value: Any):
-                setattr(the_self, attr_name, value)
+            @overload
+            def __get__(self, instance: object, owner: Type[Any]) -> Setting:
+                name = self.method.__name__
+                attr_name = f"__setting_{name}"
 
-            s = Setting(fget=fget, fset=fset)
-            Config.add_setting(type(method.__self__), config_key, s)
-            return s
+                def fget(the_self: Any) -> Any:
+                    return getattr(the_self, attr_name)
 
-        return decorator
+                def fset(the_self: Any, value: Any):
+                    setattr(the_self, attr_name, value)
+
+                s = Setting(fget=fget, fset=fset)
+                Config.add_setting(type(instance), config_key, s)
+                return s
+
+            @overload
+            def __get__(self, instance: None, owner: Type[Any]) -> "__decorator":
+                raise NotImplementedError(
+                    f"Setting {self.method.__name__} does not have a getter method. Please implement a getter method for this setting."
+                )
+
+            def __get__(self, instance: object | None, owner: Type[Any]) -> Any:
+                raise NotImplementedError(
+                    f"Setting {self.method.__name__} does not have a getter method. Please implement a getter method for this setting."
+                )
+
+
+            def __set__(self: Self, instance: object, value: Any):
+                raise NotImplementedError(
+                    f"Setting {self.method.__name__} does not have a setter method. Please implement a setter method for this setting."
+                )
+
+        return __decorator
 
     def setter[U, T](
         self, config_key: str
-    ) -> Callable[[Callable[[Any, Any], None]], Setting]:
+    ) -> Type[__GenericDescriptor[Setting]]:
         """Decorator to register a method as a setting setter."""
 
-        def decorator(method: Callable[[Any, Any], None]) -> Setting:
-            try:
-                s = Config.get_setting(type(method.__self__), config_key)
-                s = s.setter(method)
-            except ValueError:
-                s = Setting(fget=None, fset=method)
-            Config.add_setting(type(method.__self__), config_key, s)
-            return s
+        class __setter:
+            def __init__(self, method: Callable[[Any, Any], None]):
+                self.method = method
 
-        return decorator
+            def __set_name__(self, owner: Type[Any], name: str): pass
+
+            @overload
+            def __get__(self, instance: object, owner: Type[Any]) -> Setting:
+                try:
+                    s = Config.get_setting(type(instance), config_key)
+                    s = s.setter(self.method)
+                except ValueError:
+                    s = Setting(fget=None, fset=self.method)
+                Config.add_setting(type(instance), config_key, s)
+                return s
+            @overload
+            def __get__(self, instance: None, owner: Type[Any]) -> "__setter":
+                raise NotImplementedError(
+                    f"Setting {self.method.__name__} does not have a getter method. Please implement a getter method for this setting."
+                )
+            def __get__(self, instance: object | None, owner: Type[Any]) -> Any:
+                raise NotImplementedError(
+                    f"Setting {self.method.__name__} does not have a getter method. Please implement a getter method for this setting."
+                )
+
+            def __set__(self: Self, instance: object, value: Any):
+                raise NotImplementedError(
+                    f"Setting {self.method.__name__} does not have a setter method. Please implement a setter method for this setting."
+                )
+
+        return __setter
 
     def getter[U, T](
         self, config_key: str
-    ) -> Callable[[Callable[[Any], Any]], Setting]:
+    ) -> Type[__GenericDescriptor[Setting]]:
         """Decorator to register a method as a setting getter."""
+        class __getter:
+            def __init__(self, method: Callable[[Any], Any]):
+                self.method = method
 
-        def decorator(method: Callable[[Any], Any]) -> Setting:
-            try:
-                s = Config.get_setting(type(method.__self__), config_key)
-                s = s.getter(method)
-                delattr(method.__self__, method.__name__)
-            except ValueError:
-                s = Setting(fget=method, fset=None)
-            Config.add_setting(type(method.__self__), config_key, s)
-            return s
+            def __set_name__(self, owner: Type[Any], name: str): pass
 
-        return decorator
+            @overload
+            def __get__(self, instance: object, owner: Type[Any]) -> Any:
+                name = self.method.__name__
+                attr_name = f"__setting_{name}"
+
+                def fget(the_self: Any) -> Any:
+                    return getattr(the_self, attr_name)
+
+                s = Setting(fget=fget, fset=None)
+                Config.add_setting(type(instance), config_key, s)
+                return s
+
+            @overload
+            def __get__(self, instance: None, owner: Type[Any]) -> "__getter":
+                raise NotImplementedError(
+                    f"Setting {self.method.__name__} does not have a getter method. Please implement a getter method for this setting."
+                )
+
+            def __get__(self, instance: object | None, owner: Type[Any]) -> Any:
+                raise NotImplementedError(
+                    f"Setting {self.method.__name__} does not have a getter method. Please implement a getter method for this setting."
+                )
+
+            def __set__(self: Self, instance: object, value: Any):
+                raise NotImplementedError(
+                    f"Setting {self.method.__name__} does not have a setter method. Please implement a setter method for this setting."
+                )
+
+
+
+        return __getter
 
 
 setting = __setting()
