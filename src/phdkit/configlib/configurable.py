@@ -403,6 +403,8 @@ class __setting:
         class __getter[I, V]:
             def __init__(self, method: Callable[[I], V]):
                 self.method = method
+                s = Setting(fget=self.method, fset=None)
+                self.setting = s
 
             def __set_name__(self, owner: Type[I], name: str):
                 Config.update(owner)
@@ -410,9 +412,7 @@ class __setting:
                     raise ValueError(
                         f"Config key {config_key} is already registered for class {owner}"
                     )
-                s = Setting(fget=self.method, fset=None)
-                self.setting = s
-                Config.add_setting(owner, config_key, s)
+                Config.add_setting(owner, config_key, self.setting)
 
             @overload
             def __get__(self, instance: I, owner: Type[I]) -> V:
