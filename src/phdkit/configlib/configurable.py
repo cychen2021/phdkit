@@ -1,5 +1,14 @@
 from threading import Lock
-from typing import Type, Callable, Any, type_check_only, overload, Protocol, Self, TypeVar
+from typing import (
+    Type,
+    Callable,
+    Any,
+    type_check_only,
+    overload,
+    Protocol,
+    Self,
+    TypeVar,
+)
 from .configreader import ConfigLoader
 
 
@@ -79,7 +88,9 @@ class __Config:
         """
         self.registry[klass] = (config_key, load_config, load_env, {})
 
-    def add_setting[I, V](self, klass: Type[I], config_key: str, setting: "Setting[I, V]"):
+    def add_setting[I, V](
+        self, klass: Type[I], config_key: str, setting: "Setting[I, V]"
+    ):
         """Add a setting to a class.
 
         This method adds a setting to the class. The setting should be an instance of the Setting class.
@@ -171,10 +182,15 @@ class __Config:
 Config = __Config()
 config = __Config()
 
+
 class Setting[I, V]:
     """A setting"""
 
-    def __init__(self, fget: Callable[[I], V] | None = None, fset: Callable[[I, V], None] | None = None):
+    def __init__(
+        self,
+        fget: Callable[[I], V] | None = None,
+        fset: Callable[[I, V], None] | None = None,
+    ):
         self.fget = fget
         self.fset = fset
 
@@ -195,6 +211,7 @@ class Setting[I, V]:
                 f"Setting does not have a setter method. Please implement a setter method for this setting."
             )
         self.fset(instance, value)
+
 
 def configurable(
     load_config: ConfigLoader,
@@ -219,6 +236,7 @@ def configurable(
 
     return decorator
 
+
 @type_check_only
 class __Descriptor[I, V](Protocol):
     def __init__(self, method: Callable[[I], V]) -> None: ...
@@ -234,6 +252,7 @@ class __Descriptor[I, V](Protocol):
     def __get__(self, instance: I | None, owner: Type[I]) -> "V | __Descriptor": ...
 
     def __set__(self, instance: I, value: V) -> None: ...
+
 
 @type_check_only
 class __DescriptorSetter[I, V](Protocol):
@@ -251,6 +270,7 @@ class __DescriptorSetter[I, V](Protocol):
 
     def __set__(self, instance: I, value: V) -> None: ...
 
+
 class __setting:
     _singleton = None
     _singleton_lock = Lock()
@@ -265,7 +285,9 @@ class __setting:
     def __init__(self):
         pass
 
-    def __call__[T, S](self, config_key: str) -> Callable[[Callable[[T], S]], __Descriptor[T, S]]:
+    def __call__[T, S](
+        self, config_key: str
+    ) -> Callable[[Callable[[T], S]], __Descriptor[T, S]]:
         """Decorator to register a method as a setting.
 
         This decorator registers the method as a setting with a config key. It will ignore the definition of the method
@@ -313,7 +335,6 @@ class __setting:
                     f"Setting {self.method.__name__} does not have a getter method. Please implement a getter method for this setting."
                 )
 
-
             def __set__(self: Self, instance: I, value: V):
                 if self.setting.fset is None:
                     raise NotImplementedError(
@@ -323,6 +344,7 @@ class __setting:
 
         def __wrapper(method: Callable[[T], S]) -> __decorator[T, S]:
             return __decorator(method)
+
         return __wrapper
 
     def setter(
@@ -333,6 +355,7 @@ class __setting:
         class __setter[V]:
             def __init__(self, method: Callable[[Any, V], None]):
                 self.method = method
+
             def __set_name__(self, owner: Type[Any], name: str):
                 try:
                     s = Config.get_setting(owner, config_key)
@@ -355,6 +378,7 @@ class __setting:
                 raise NotImplementedError(
                     f"Setting {self.method.__name__} does not have a getter method. Please implement a getter method for this setting."
                 )
+
             def __get__(self, instance: object | None, owner: Type[Any]) -> Any:
                 raise NotImplementedError(
                     f"Setting {self.method.__name__} does not have a getter method. Please implement a getter method for this setting."
@@ -376,6 +400,7 @@ class __setting:
         self, config_key: str
     ) -> Callable[[Callable[[T], S]], __Descriptor[T, S]]:
         """Decorator to register a method as a setting getter."""
+
         class __getter[V]:
             def __init__(self, method: Callable[[Any], V]):
                 self.method = method
@@ -414,8 +439,10 @@ class __setting:
                         f"Setting {self.method.__name__} does not have a setter method. Please implement a setter method for this setting."
                     )
                 self.setting.fset(instance, value)
+
         def __wrapper(method: Callable[[T], S]) -> __Descriptor[T, S]:
             return __getter(method)
+
         return __wrapper
 
 
