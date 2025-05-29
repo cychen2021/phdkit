@@ -10,7 +10,7 @@ from typing import (
 from .configreader import ConfigLoader
 
 
-def __split_key(key: str) -> list[str]:
+def split_key(key: str) -> list[str]:
     return key.split(".")
 
 
@@ -206,7 +206,7 @@ class __Config:
 
         def __load_key(key: str, config: dict):
             current_config = config
-            for key in __split_key(key):
+            for key in split_key(key):
                 current_config = current_config[key]
             return current_config
 
@@ -216,7 +216,7 @@ class __Config:
             )
         config = load_config(config_file)
         if config_key:
-            route = __split_key(config_key)
+            route = split_key(config_key)
             for key in route:
                 if key not in config:
                     raise KeyError(f"Key {key} not found in configuration file")
