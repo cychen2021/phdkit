@@ -7,6 +7,7 @@ from datetime import datetime
 import io
 from .notifier import EmailNotifier
 
+logging.lastResort = False
 
 class LogLevel(Enum):
     DEBUG = logging.DEBUG
@@ -57,14 +58,7 @@ class LogOutput:
                 self.__handler = self.__EmailHandler(email_notifier)
         self.__handler.setLevel(level.value)
 
-        match format:
-            case "plain":
-                formatter = logging.Formatter("[%(name)s:%(levelname)s] %(message)s")
-            case "jsonl":
-                formatter = logging.Formatter("%(message)s")
-
-            case _:
-                raise ValueError(f"Invalid format: {format}")
+        formatter = logging.Formatter("%(message)s")
         self.__handler.setFormatter(formatter)
 
     @property
@@ -86,6 +80,13 @@ class LogOutput:
     @property
     def auto_timestamp(self) -> bool:
         return self.__auto_timestamp
+
+    def __repr__(self):
+        return (
+            f"LogOutput(id={self.__id}, kind={self.__kind}, "
+            f"level={self.__level}, format={self.__format}, "
+            f"auto_timestamp={self.__auto_timestamp})"
+        )
 
     class __EmailHandler(logging.NullHandler):
         def __init__(self, email_notifier: EmailNotifier):
@@ -215,18 +216,35 @@ class Logger:
         self,
         name: str,
         *,
-        outputs: list[LogOutput] = [],
+        outputs: list[LogOutput] | None = [],
     ):
-        if not outputs:
+        self.name = name
+        if outputs is not None and not outputs:
             outputs = [Logger.__default_output]
-        self.__underlying_logger: logging.Logger = logging.getLogger(name)
+        elif outputs is None:
+            outputs = []
+        self.__underlying_logger: logging.Logger = logging.getLogger(name + ".plain")
         self.__underlying_logger_with_timestamp: logging.Logger = logging.getLogger(
-            name
+            name + ".plain_timestamp"
         )
-        self.__underlying_jsonl_logger: logging.Logger = logging.getLogger(name)
+        self.__underlying_jsonl_logger: logging.Logger = logging.getLogger(name + ".jsonl")
         self.__underlying_jsonl_logger_with_timestamp: logging.Logger = (
-            logging.getLogger(name)
+            logging.getLogger(name + ".jsonl_timestamp")
         )
+        self.__underlying_logger.handlers.clear()
+        self.__underlying_logger_with_timestamp.handlers.clear()
+        self.__underlying_jsonl_logger.handlers.clear()
+        self.__underlying_jsonl_logger_with_timestamp.handlers.clear()
+
+        # The filtration will be hijacked according to `LogOutput`
+        self.__underlying_logger.setLevel(logging.DEBUG)
+        self.__underlying_logger_with_timestamp.setLevel(logging.DEBUG)
+        self.__underlying_jsonl_logger.setLevel(logging.DEBUG)
+        self.__underlying_jsonl_logger_with_timestamp.setLevel(logging.DEBUG)
+        self.__underlying_logger.propagate = False
+        self.__underlying_logger_with_timestamp.propagate = False
+        self.__underlying_jsonl_logger.propagate = False
+        self.__underlying_jsonl_logger_with_timestamp.propagate = False
 
         self.__outputs = {}
         for output in outputs:
@@ -286,25 +304,40 @@ class Logger:
         else:
             level_number = getattr(logging, level.upper())
 
-        self.__underlying_logger.log(level_number, f"{header}: {message}")
-        self.__underlying_jsonl_logger.log(
-            level_number,
-            json.dumps({"header": header, "message": message}),
-        )
+        message_lines = str(message).splitlines()
+        idented = []
+        for line in message_lines:
+            if line.strip():
+                idented.append("  " + line)
+            else:
+                idented.append(line)
+        indented_message = "\n".join(idented)
+
+        if self.__underlying_logger.handlers:
+            self.__underlying_logger.log(level_number, f"[{self.name}:{level}] {header}:\n{indented_message}\n")
+        if self.__underlying_jsonl_logger.handlers:
+            self.__underlying_jsonl_logger.log(
+                level_number,
+                json.dumps({"name": self.name, "level": level, "header": header, "message": message}),
+            )
         timestamp = datetime.now().isoformat()
-        self.__underlying_logger_with_timestamp.log(
-            level_number, f"{header} @ {timestamp}: {message}"
-        )
-        self.__underlying_jsonl_logger_with_timestamp.log(
-            level_number,
-            json.dumps(
-                {
-                    "timestamp": timestamp,
-                    "header": header,
-                    "message": message,
-                }
-            ),
-        )
+        if self.__underlying_logger_with_timestamp.handlers:
+            self.__underlying_logger_with_timestamp.log(
+                level_number, f"[{self.name}:{level} @ {timestamp}] {header}:\n{indented_message}\n"
+            )
+        if self.__underlying_jsonl_logger_with_timestamp.handlers:
+            self.__underlying_jsonl_logger_with_timestamp.log(
+                level_number,
+                json.dumps(
+                    {
+                        "name": self.name,
+                        "level": level,
+                        "timestamp": timestamp,
+                        "header": header,
+                        "message": message,
+                    }
+                ),
+            )
 
     def debug(self, header: str, message: object):
         self.log("debug", header, message)
