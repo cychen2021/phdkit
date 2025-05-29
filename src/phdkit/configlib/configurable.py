@@ -210,11 +210,49 @@ class __Config:
                 current_config = current_config[key]
             return current_config
 
+        def __merge_config(config1: dict, config2: dict) -> dict:
+            """Recursively merge two dictionaries.
+
+            When there are overlapping keys, if both values are dictionaries, they are merged recursively.
+            Otherwise, the value from config2 overwrites the value from config1.
+
+            Args:
+                config1: The base dictionary
+                config2: The dictionary to merge on top of config1
+
+            Returns:
+                A new dictionary with merged values
+            """
+            result = config1.copy()
+
+            for key, value in config2.items():
+                if (
+                    key in result
+                    and isinstance(result[key], dict)
+                    and isinstance(value, dict)
+                ):
+                    # If both values are dictionaries, merge them recursively
+                    result[key] = __merge_config(result[key], value)
+                else:
+                    # Otherwise, overwrite the value
+                    result[key] = value
+
+            return result
+
         if load_config is None:
             raise ValueError(
                 f"Config file loader is not provided for class {klass}. Please provide one."
             )
         config = load_config(config_file)
+        if load_env:
+            env_config = load_env(env_file)
+            config = __merge_config(config, env_config)
+        else:
+            if env_file:
+                raise ValueError(
+                    "The configurable doesn't accept a separate environment file"
+                )
+
         if config_key:
             route = split_key(config_key)
             for key in route:
@@ -229,22 +267,6 @@ class __Config:
                     f"Setting {key} does not have a setter method. Please implement a setter method for this setting."
                 )
             setting.fset(instance, value)
-
-        if load_env:
-            env_config = load_env(env_file)
-            for key, setting in settings.items():
-                if key in env_config:
-                    value = __load_key(key, env_config)
-                    if setting.fset is None:
-                        raise NotImplementedError(
-                            f"Setting {key} does not have a setter method. Please implement a setter method for this setting."
-                        )
-                    setting.fset(instance, value)
-        else:
-            if env_file:
-                raise ValueError(
-                    "The configurable doesn't accept a separate environment file"
-                )
 
 
 Config = __Config()
@@ -398,9 +420,15 @@ class __setting:
                 )
 
             def __get__(self, instance: I | None, owner: Type[I]) -> "V | __decorator":
-                raise NotImplementedError(
-                    f"Setting {self.method.__name__} does not have a getter method. Please implement a getter method for this setting."
-                )
+                if instance is None:
+                    raise ValueError(
+                        "Setting getter cannot be called on the class itself. Please call it on an instance of the class."
+                    )
+                if self.setting.fget is None:
+                    raise NotImplementedError(
+                        f"Setting {self.method.__name__} does not have a getter method. Please implement a getter method for this setting."
+                    )
+                return self.setting.fget(instance)
 
             def __set__(self: Self, instance: I, value: V):
                 if self.setting.fset is None:
@@ -454,9 +482,15 @@ class __setting:
                 )
 
             def __get__(self, instance: I | None, owner: Type[I]) -> "V | __getter":
-                raise NotImplementedError(
-                    f"Setting {self.method.__name__} does not have a getter method. Please implement a getter method for this setting."
-                )
+                if instance is None:
+                    raise ValueError(
+                        "Setting getter cannot be called on the class itself. Please call it on an instance of the class."
+                    )
+                if self.setting.fget is None:
+                    raise NotImplementedError(
+                        f"Setting {self.method.__name__} does not have a getter method. Please implement a getter method for this setting."
+                    )
+                return self.setting.fget(instance)
 
             def __set__(self, instance: I, value: V):
                 if self.setting.fset is None:
