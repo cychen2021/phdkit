@@ -8,7 +8,7 @@ __all__ = ["AutoRetry", "AutoRetryError"]
 
 
 class AutoRetryError(Exception):
-    """Custom exception for LLMBridge errors."""
+    """Custom exception for auto retry errors."""
 
     def __init__(self, message: str, exceptions: list[Exception] = []):
         super().__init__(message)
