@@ -67,7 +67,11 @@ class AutoRetry:
         return self.call(*args, **kwds)
 
     def call(self, *args, **kwargs) -> Any:
-        """Call the wrapped function with retry logic."""
+        """Call the wrapped function with retry logic.
+
+        Raises:
+            AutoRetryError: If the function fails after the maximum number of retries.
+        """
 
         exceptions = []
         retry_count = 0
