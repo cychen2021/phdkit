@@ -6,6 +6,7 @@ from .log import Logger
 
 __all__ = ["AutoRetry", "AutoRetryError"]
 
+
 class AutoRetryError(Exception):
     """Custom exception for LLMBridge errors."""
 
