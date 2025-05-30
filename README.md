@@ -4,18 +4,24 @@
 
 TODO
 
-## Logging and Email Notification
+## Features
+
+### Logging and Email Notification
 
 TODO
 
-## Task Batching
+### Task Batching
 
 TODO
 
-## Plotting with a Declarative API
+### Plotting with a Declarative API
 
 TODO
 
-## Other Utilities
+### Other Utilities
+
+TODO
+
+## Development
 
 TODO
