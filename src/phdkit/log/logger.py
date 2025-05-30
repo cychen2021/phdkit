@@ -1,4 +1,4 @@
-""" Improved logging.
+"""Improved logging.
 
 This module provides a flexible logging system that supports multiple output formats
 and destinations, including console, file, and email. It allows for different logging levels,
@@ -18,7 +18,6 @@ Usage:
     logger = Logger("my_logger", outputs=[log_output])
     logger.info("Header", "This is a log message.")
 """
-
 
 import logging
 from typing import Literal, TextIO, override
@@ -45,7 +44,7 @@ class LogOutputKind(Enum):
 
 
 class LogOutput:
-    """ Represents a logging output configuration.
+    """Represents a logging output configuration.
     This class allows you to configure different logging outputs such as console,
     file, or email. Each output can have its own logging level, format, and
     whether to include timestamps automatically.
@@ -305,7 +304,7 @@ class Logger:
         """Initializes the Logger with a name and optional outputs.
         Args:
             name (str): The name of the logger.
-            outputs (list[LogOutput] | None): A list of LogOutput instances that define where to log messages. 
+            outputs (list[LogOutput] | None): A list of LogOutput instances that define where to log messages.
                 The logger will output to stderr by default. Set `outputs` to `None` to disable it.
         """
 
