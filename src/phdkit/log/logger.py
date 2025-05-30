@@ -7,6 +7,7 @@ from datetime import datetime
 import io
 from .notifier import EmailNotifier
 
+
 class LogLevel(Enum):
     DEBUG = logging.DEBUG
     INFO = logging.INFO
@@ -225,7 +226,9 @@ class Logger:
         self.__underlying_logger_with_timestamp: logging.Logger = logging.getLogger(
             name + ".plain_timestamp"
         )
-        self.__underlying_jsonl_logger: logging.Logger = logging.getLogger(name + ".jsonl")
+        self.__underlying_jsonl_logger: logging.Logger = logging.getLogger(
+            name + ".jsonl"
+        )
         self.__underlying_jsonl_logger_with_timestamp: logging.Logger = (
             logging.getLogger(name + ".jsonl_timestamp")
         )
@@ -312,16 +315,26 @@ class Logger:
         indented_message = "\n".join(idented)
 
         if self.__underlying_logger.handlers:
-            self.__underlying_logger.log(level_number, f"[{self.name}:{level}] {header}:\n{indented_message}\n")
+            self.__underlying_logger.log(
+                level_number, f"[{self.name}:{level}] {header}:\n{indented_message}\n"
+            )
         if self.__underlying_jsonl_logger.handlers:
             self.__underlying_jsonl_logger.log(
                 level_number,
-                json.dumps({"name": self.name, "level": level, "header": header, "message": message}),
+                json.dumps(
+                    {
+                        "name": self.name,
+                        "level": level,
+                        "header": header,
+                        "message": message,
+                    }
+                ),
             )
         timestamp = datetime.now().isoformat()
         if self.__underlying_logger_with_timestamp.handlers:
             self.__underlying_logger_with_timestamp.log(
-                level_number, f"[{self.name}:{level} @ {timestamp}] {header}:\n{indented_message}\n"
+                level_number,
+                f"[{self.name}:{level} @ {timestamp}] {header}:\n{indented_message}\n",
             )
         if self.__underlying_jsonl_logger_with_timestamp.handlers:
             self.__underlying_jsonl_logger_with_timestamp.log(

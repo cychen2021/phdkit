@@ -356,16 +356,18 @@ class Descriptor[I, V](Protocol):
         """
         ...
 
+
 @staticmethod
 def mangle_attr(the_self, attr):
     # return public attrs unchanged
-    if not attr.startswith("__") or attr.endswith("__") or '.' in attr:
+    if not attr.startswith("__") or attr.endswith("__") or "." in attr:
         return attr
     # if source is an object, get the class
     if not hasattr(the_self, "__bases__"):
         the_self = the_self.__class__
     # mangle attr
     return f"_{the_self.__name__.lstrip('_')}{attr}"
+
 
 class __setting:
     _singleton = None
@@ -380,7 +382,6 @@ class __setting:
 
     def __init__(self):
         pass
-
 
     def __call__[T, S](
         self, config_key: str
