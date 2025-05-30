@@ -59,9 +59,15 @@ def __read_email_env_config(config_file: str | None) -> dict:
     load_env=__read_email_env_config,
 )
 class EmailNotifier:
-    """The actual email notifier.
+    """An email notifier.
 
-    As the `configurable` decorator discards type information, we forward this class to `EmailNotifier`.
+    Settings:
+        reciever (str | None): The email address to send notifications to.
+        smtp (str | None): The SMTP server to use for sending emails.
+        sender (str | None): The email address to send notifications from.
+        password (str | None): The password for the sender's email account.
+    Methods:
+        send(header: str, body: str): Sends an email with the given header and body.
     """
 
     @setting("email_reciever")

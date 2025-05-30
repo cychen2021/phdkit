@@ -1,3 +1,25 @@
+""" Improved logging.
+
+This module provides a flexible logging system that supports multiple output formats
+and destinations, including console, file, and email. It allows for different logging levels,
+formats (plain text or JSONL), and optional timestamps. The `Logger` class can be used to log messages
+with various severity levels, and the `LogOutput` class defines the configuration for each logging output.
+The `LogOutput` class can be used to create console outputs (to stdout or stderr), file outputs, or email outputs.
+It is designed to be extensible, allowing users to add or remove logging outputs dynamically.
+The `Logger` class manages multiple `LogOutput` instances and provides methods to log messages at different levels.
+
+Usage:
+    log_output = LogOutput.stdout(
+        id="my_stdout",
+        level=LogLevel.INFO,
+        format="plain",
+        auto_timestamp=True
+    )
+    logger = Logger("my_logger", outputs=[log_output])
+    logger.info("Header", "This is a log message.")
+"""
+
+
 import logging
 from typing import Literal, TextIO, override
 import json
@@ -23,6 +45,29 @@ class LogOutputKind(Enum):
 
 
 class LogOutput:
+    """ Represents a logging output configuration.
+    This class allows you to configure different logging outputs such as console,
+    file, or email. Each output can have its own logging level, format, and
+    whether to include timestamps automatically.
+    Attributes:
+        id (str | None): An optional identifier for the log output.
+        kind (LogOutputKind): The type of log output (console, file, or email).
+        file (str | None): The file path for file logging, if applicable.
+        stream (TextIO | None): The stream for console logging, if applicable.
+        level (LogLevel): The logging level for this output.
+        email_notifier (EmailNotifier | None): An email notifier for email logging.
+        format (Literal["plain", "jsonl"]): The format of the log output.
+        auto_timestamp (bool): Whether to automatically include timestamps in logs.
+    Methods:
+        __init__: Initializes a LogOutput instance with the specified parameters.
+        stdout: Creates a console log output to standard output.
+        stderr: Creates a console log output to standard error.
+        file: Creates a file log output.
+        email: Creates an email log output using an EmailNotifier.
+        flush: Flushes the underlying handler.
+        handler: Returns the underlying logging handler for this output.
+    """
+
     def __init__(
         self,
         id: str | None = None,
@@ -35,6 +80,20 @@ class LogOutput:
         format: Literal["plain", "jsonl"] = "plain",
         auto_timestamp: bool = True,
     ):
+        """Initializes a LogOutput instance.
+        Args:
+            id (str | None): An optional identifier for the log output.
+            kind (LogOutputKind): The type of log output (console, file, or email).
+            file (str | None): The file path for file logging, if applicable.
+            stream (TextIO | None): The stream for console logging, if applicable.
+            level (LogLevel): The logging level for this output.
+            email_notifier (EmailNotifier | None): An email notifier for email logging.
+            format (Literal["plain", "jsonl"]): The format of the log output.
+            auto_timestamp (bool): Whether to automatically include timestamps in logs.
+        Raises:
+            AssertionError: If both file and stream are specified, or if the kind does not match the provided file/stream/email_notifier.
+        """
+
         self.__id = id
         self.__kind = kind
         self.__format: Literal["plain", "jsonl"] = format
@@ -141,6 +200,8 @@ class LogOutput:
         format: Literal["plain", "jsonl"] = "plain",
         auto_timestamp: bool = True,
     ) -> "LogOutput":
+        """Creates a console log output to standard output."""
+
         return LogOutput(
             id,
             kind=LogOutputKind.CONSOLE,
@@ -157,6 +218,8 @@ class LogOutput:
         format: Literal["plain", "jsonl"] = "plain",
         auto_timestamp: bool = True,
     ) -> "LogOutput":
+        """Creates a console log output to standard error."""
+
         return LogOutput(
             id,
             kind=LogOutputKind.CONSOLE,
@@ -175,6 +238,8 @@ class LogOutput:
         format: Literal["plain", "jsonl"] = "plain",
         auto_timestamp: bool = True,
     ) -> "LogOutput":
+        """Creates a file log output."""
+
         return LogOutput(
             id,
             kind=LogOutputKind.FILE,
@@ -193,6 +258,8 @@ class LogOutput:
         format: Literal["plain", "jsonl"] = "plain",
         auto_timestamp: bool = True,
     ) -> "LogOutput":
+        """Creates an email log output using an EmailNotifier."""
+
         return LogOutput(
             id,
             kind=LogOutputKind.EMAIL,
@@ -204,6 +271,24 @@ class LogOutput:
 
 
 class Logger:
+    """A logger that supports multiple output formats and destinations.
+    This logger can log messages to different outputs such as console, file, or email,
+    with support for different formats (plain text or JSONL) and optional timestamps.
+    Attributes:
+        name (str): The name of the logger.
+        outputs (list[LogOutput]): A list of LogOutput instances that define where to log messages.
+    Methods:
+        __init__: Initializes the Logger with a name and optional outputs.
+        add_output: Adds a new LogOutput to the logger.
+        remove_output: Removes a LogOutput from the logger.
+        log: Logs a message with a specified level, header, and message content.
+        debug: Logs a debug message.
+        info: Logs an informational message.
+        warning: Logs a warning message.
+        error: Logs an error message.
+        critical: Logs a critical message.
+    """
+
     __default_output = LogOutput.stderr(
         id="stderr",
         level=LogLevel.INFO,
@@ -217,6 +302,13 @@ class Logger:
         *,
         outputs: list[LogOutput] | None = [],
     ):
+        """Initializes the Logger with a name and optional outputs.
+        Args:
+            name (str): The name of the logger.
+            outputs (list[LogOutput] | None): A list of LogOutput instances that define where to log messages. 
+                The logger will output to stderr by default. Set `outputs` to `None` to disable it.
+        """
+
         self.name = name
         if outputs is not None and not outputs:
             outputs = [Logger.__default_output]
@@ -300,6 +392,14 @@ class Logger:
         header: str,
         message: object,
     ):
+        """Logs a message with a specified level, header, and message content.
+        Args:
+            level (Literal["debug", "info", "warning", "error", "critical"] | LogLevel):
+                The logging level to use. Can be a string or a LogLevel enum.
+            header (str): A header for the log message.
+            message (object): The message content to log. It will be converted to a string.
+        """
+
         if isinstance(level, LogLevel):
             level_number = level.value
         else:
@@ -351,16 +451,40 @@ class Logger:
             )
 
     def debug(self, header: str, message: object):
+        """Logs a debug message.
+
+        See :func:`log` for more details.
+        """
+
         self.log("debug", header, message)
 
     def info(self, header: str, message: object):
+        """Logs an informational message.
+
+        See :func:`log` for more details.
+        """
+
         self.log("info", header, message)
 
     def warning(self, header: str, message: object):
+        """Logs a warning message.
+        See :func:`log` for more details.
+        """
+
         self.log("warning", header, message)
 
     def error(self, header: str, message: object):
+        """Logs an error message.
+
+        See :func:`log` for more details.
+        """
+
         self.log("error", header, message)
 
     def critical(self, header: str, message: object):
+        """Logs a critical message.
+
+        See :func:`log` for more details.
+        """
+
         self.log("critical", header, message)
