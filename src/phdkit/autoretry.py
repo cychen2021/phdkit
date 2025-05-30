@@ -42,11 +42,12 @@ class AutoRetry:
         decrement_num: int = 10,
     ):
         """Initialize the AutoRetry instance.
-        :param func: The function to wrap with retry logic.
-        :param logger: Optional logger for debug messages.
-        :param max_retrys: Maximum number of retry attempts.
-        :param increment_factor: Factor by which the retry delay is multiplied after each failure.
-        :param decrement_num: Amount by which the retry delay is decreased after a successful attempt.
+        Args:
+            func: The function to wrap with retry logic.
+            logger: Optional logger for debug messages.
+            max_retrys: Maximum number of retry attempts.
+            increment_factor: Factor by which the retry delay is multiplied after each failure.
+            decrement_num: Amount by which the retry delay is decreased after a successful attempt.
         """
 
         self.llm_api_call = func
