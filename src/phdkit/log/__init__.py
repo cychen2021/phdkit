@@ -8,15 +8,18 @@ The `LogOutput` class can be used to create console outputs (to stdout or stderr
 It is designed to be extensible, allowing users to add or remove logging outputs dynamically.
 The `Logger` class manages multiple `LogOutput` instances and provides methods to log messages at different levels.
 
-Usage:
-    log_output = LogOutput.stdout(
-        id="my_stdout",
-        level=LogLevel.INFO,
-        format="plain",
-        auto_timestamp=True
-    )
-    logger = Logger("my_logger", outputs=[log_output])
-    logger.info("Header", "This is a log message.")
+Example usage:
+
+```python
+log_output = LogOutput.stdout(
+    id="my_stdout",
+    level=LogLevel.INFO,
+    format="plain",
+    auto_timestamp=True
+)
+logger = Logger("my_logger", outputs=[log_output])
+logger.info("Header", "This is a log message.")
+```
 """
 
 from .logger import Logger, LogOutput, LogOutputKind, EmailNotifier, LogLevel
