@@ -356,6 +356,16 @@ class Descriptor[I, V](Protocol):
         """
         ...
 
+@staticmethod
+def mangle_attr(the_self, attr):
+    # return public attrs unchanged
+    if not attr.startswith("__") or attr.endswith("__") or '.' in attr:
+        return attr
+    # if source is an object, get the class
+    if not hasattr(the_self, "__bases__"):
+        the_self = the_self.__class__
+    # mangle attr
+    return f"_{the_self.__name__.lstrip('_')}{attr}"
 
 class __setting:
     _singleton = None
@@ -370,6 +380,7 @@ class __setting:
 
     def __init__(self):
         pass
+
 
     def __call__[T, S](
         self, config_key: str
@@ -388,13 +399,13 @@ class __setting:
             def __init__(self, method: Callable[[I], V]):
                 self.method = method
                 name = self.method.__name__
-                attr_name = f"__setting_{name}"
+                attr_name = f"__{name}"
 
                 def fget(the_self: Any) -> V:
-                    return getattr(the_self, attr_name)
+                    return getattr(the_self, mangle_attr(the_self, attr_name))
 
                 def fset(the_self: Any, value: V) -> None:
-                    setattr(the_self, attr_name, value)
+                    setattr(the_self, mangle_attr(the_self, attr_name), value)
 
                 s = Setting(fget=fget, fset=fset)
                 self.setting = s
