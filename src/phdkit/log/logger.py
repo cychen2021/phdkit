@@ -284,7 +284,7 @@ class Logger:
         Args:
             name (str): The name of the logger.
             outputs (list[LogOutput] | None): A list of LogOutput instances that define where to log messages.
-                The logger will output to stderr by default. Set `outputs` to `None` to disable it.
+                The logger will output to `stderr` if no outputs are provided. Set `outputs` to `None` to disable this "last resort" output.
         """
 
         self.name = name
