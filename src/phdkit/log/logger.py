@@ -7,8 +7,6 @@ from datetime import datetime
 import io
 from .notifier import EmailNotifier
 
-logging.lastResort = False
-
 class LogLevel(Enum):
     DEBUG = logging.DEBUG
     INFO = logging.INFO
