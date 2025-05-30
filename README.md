@@ -14,7 +14,7 @@ TODO
 
 TODO
 
-### Plotting with a Declarative API
+### Declaratively Plotting
 
 TODO
 
