@@ -5,9 +5,9 @@ TODO
 
 from ..mid import infix
 
-class Layer:
-    ...
+
+class Layer: ...
+
 
 @infix
-def on(top_layer: Layer, bottom_layer: Layer) -> Layer:
-    ...
+def on(top_layer: Layer, bottom_layer: Layer) -> Layer: ...
