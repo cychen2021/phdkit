@@ -61,6 +61,7 @@ def make_infix[P1, P2, T]() -> Callable[[Callable[[P1, P2], T]], Callable[[P1, P
         {"__or__": base_infix.left, "__ror__": base_infix.right},
     )
 
+
 def infix[P1, P2, T](func: Callable[[P1, P2], T]) -> Callable[[P1, P2], T]:
     """Defining infix functions.
 
