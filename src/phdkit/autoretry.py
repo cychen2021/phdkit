@@ -43,6 +43,7 @@ class AutoRetry:
         decrement_num: int = 10,
     ):
         """Initialize the AutoRetry instance.
+
         Args:
             func: The function to wrap with retry logic.
             logger: Optional logger for debug messages.
