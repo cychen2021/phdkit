@@ -1,4 +1,4 @@
-"""A wrapper over matplotlib to easy plotting for research papers.
+"""A wrapper over matplotlib to easy plotting for research papers inspired by ggplot2.
 
 TODO
 """
