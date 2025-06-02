@@ -1,8 +1,8 @@
-from . import autoretry, batching, configlib, gplog, log, mapreduce, pbar
+from . import batching, configlib, gplog, log, mapreduce, pbar
 from .infix_fn import infix
+from .autoretry import AutoRetry, AutoRetryError
 
 __all__ = [
-    "autoretry",
     "batching",
     "configlib",
     "gplog",
@@ -10,4 +10,6 @@ __all__ = [
     "mapreduce",
     "pbar",
     "infix",
+    "AutoRetry",
+    "AutoRetryError",
 ]
