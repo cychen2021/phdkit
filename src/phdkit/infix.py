@@ -1,3 +1,19 @@
+"""Infix functions.
+
+Example usage:
+
+```python
+from phdkit.infix import infix
+
+@infix
+def add(x, y):
+    return x + y
+
+result = 1 |add| 2  # Equivalent to add(1, 2)
+print(result)  # Output: 3
+```
+"""
+
 from functools import update_wrapper
 
 __all__ = ["infix"]
