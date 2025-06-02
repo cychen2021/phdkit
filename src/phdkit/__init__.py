@@ -1,6 +1,6 @@
-from . import batching, configlib, gplog, log, mapreduce, pbar
+from . import batching, configlib, gplog, log, mapreduce, pbar, autoretry
+from .util import unimplemented, strip_indent, protect_indent, UnimplementedError
 from .infix_fn import infix
-from .autoretry import AutoRetry, AutoRetryError
 
 __all__ = [
     "batching",
@@ -10,6 +10,9 @@ __all__ = [
     "mapreduce",
     "pbar",
     "infix",
-    "AutoRetry",
-    "AutoRetryError",
+    "autoretry",
+    "unimplemented",
+    "strip_indent",
+    "protect_indent",
+    "UnimplementedError",
 ]

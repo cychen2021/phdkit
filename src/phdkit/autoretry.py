@@ -3,6 +3,7 @@
 from typing import Callable, Any
 import time
 from .log import Logger
+from .util import unimplemented
 
 __all__ = ["AutoRetry", "AutoRetryError"]
 
@@ -105,3 +106,6 @@ class AutoRetry:
                     )
                 self.retry_delay *= self.increment_factor
                 time.sleep(self.retry_delay)
+
+def autoretry():
+    unimplemented("The `autoretry` wrapper is not implemented yet. Use the `AutoRetry` class directly.")
