@@ -3,7 +3,7 @@
 TODO
 """
 
-from ..mid import infix
+from ..infix_fn import infix
 
 
 class Layer: ...

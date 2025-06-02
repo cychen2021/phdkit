@@ -1,4 +1,5 @@
-from . import autoretry, batching, configlib, gplog, log, mapreduce, mid, pbar
+from . import autoretry, batching, configlib, gplog, log, mapreduce, pbar
+from .infix_fn import infix
 
 __all__ = [
     "autoretry",
@@ -8,5 +9,5 @@ __all__ = [
     "log",
     "mapreduce",
     "pbar",
-    "mid",
+    "infix",
 ]

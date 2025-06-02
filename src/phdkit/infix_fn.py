@@ -1,19 +1,3 @@
-"""Defining infix functions.
-
-Example usage:
-
-```python
-from phdkit.mid import infix
-
-@infix
-def add(x, y):
-    return x + y
-
-result = 1 |add| 2  # Equivalent to add(1, 2)
-print(result)  # Output: 3
-```
-"""
-
 from functools import update_wrapper
 from typing import Callable
 
@@ -77,5 +61,21 @@ def make_infix[P1, P2, T]() -> Callable[[Callable[[P1, P2], T]], Callable[[P1, P
         {"__or__": base_infix.left, "__ror__": base_infix.right},
     )
 
+def infix[P1, P2, T](func: Callable[[P1, P2], T]) -> Callable[[P1, P2], T]:
+    """Defining infix functions.
 
-infix = make_infix()
+    Example usage:
+
+    ```python
+    from phdkit import infix
+
+    @infix
+    def add(x, y):
+        return x + y
+
+    result = 1 |add| 2  # Equivalent to add(1, 2)
+    print(result)  # Output: 3
+    ```
+    """
+
+    return make_infix()(func)
