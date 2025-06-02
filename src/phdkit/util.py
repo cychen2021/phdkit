@@ -31,14 +31,13 @@ def strip_indent(text: str, *, keep_trailing_ws: bool = False) -> str:
     ____"""
     stripped_text = strip_indent(text, keep_trailing_ws=True)
     print(stripped_text)
-    ```
-    The output will be:
-    ```text
-    This is a line with leading whitespace.
-    This is another line with leading whitespace.
-    This line has a pipe at the start.
-    ____|This line has two pipes at the start.
-    ____
+
+    # The output will be:
+    # > This is a line with leading whitespace.
+    # > This is another line with leading whitespace.
+    # > This line has a pipe at the start.
+    # > ____|This line has two pipes at the start.
+    # > ____
     ```
 
     Args:
