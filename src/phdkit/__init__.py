@@ -1,4 +1,4 @@
-from . import autoretry, batching, configlib, gplog, log, mapreduce, pbar, infix
+from . import autoretry, batching, configlib, gplog, log, mapreduce, mid, pbar
 
 __all__ = [
     "autoretry",
@@ -8,5 +8,5 @@ __all__ = [
     "log",
     "mapreduce",
     "pbar",
-    "infix",
+    "mid",
 ]

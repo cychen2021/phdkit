@@ -1,9 +1,9 @@
-"""Infix functions.
+"""Defining infix functions.
 
 Example usage:
 
 ```python
-from phdkit.infix import infix
+from phdkit.mid import infix
 
 @infix
 def add(x, y):
