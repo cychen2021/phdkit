@@ -107,5 +107,8 @@ class AutoRetry:
                 self.retry_delay *= self.increment_factor
                 time.sleep(self.retry_delay)
 
+
 def autoretry():
-    unimplemented("The `autoretry` wrapper is not implemented yet. Use the `AutoRetry` class directly.")
+    unimplemented(
+        "The `autoretry` wrapper is not implemented yet. Use the `AutoRetry` class directly."
+    )
