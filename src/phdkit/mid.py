@@ -15,6 +15,7 @@ print(result)  # Output: 3
 """
 
 from functools import update_wrapper
+from typing import Callable
 
 __all__ = ["infix"]
 
@@ -69,7 +70,7 @@ class lbind(object):
         return f"<{self.__class__.__name__}: Waiting for right side>"
 
 
-def make_infix():
+def make_infix[P1, P2, T]() -> Callable[[Callable[[P1, P2], T]], Callable[[P1, P2], T]]:
     return type(
         f"_or_infix",
         (base_infix,),
