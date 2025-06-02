@@ -8,4 +8,5 @@ __all__ = [
     "log",
     "mapreduce",
     "pbar",
+    "infix",
 ]
