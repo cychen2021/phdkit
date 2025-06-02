@@ -28,7 +28,7 @@ def strip_indent(text: str, *, keep_trailing_ws: bool = False) -> str:
     ____|This is another line with leading whitespace.
     ____|This line has a pipe at the start.
     ____||This line has two pipes at the start.
-    """
+    ____"""
     stripped_text = strip_indent(text, keep_trailing_ws=True)
     print(stripped_text)
     ```
