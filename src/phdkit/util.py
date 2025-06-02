@@ -73,7 +73,7 @@ def strip_indent(text: str, *, keep_trailing_ws: bool = False) -> str:
 def protect_indent(text: str) -> str:
     """Protect the indentation of lines starting with a pipe character by adding an additional pipe.
 
-    See :func:`strip_indent`/
+    See :func:`strip_indent`.
     """
 
     lines = text.splitlines()
