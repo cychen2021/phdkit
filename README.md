@@ -6,19 +6,23 @@ TODO
 
 ## Features
 
-### Logging and Email Notification
+### Logging and email notification
 
 TODO
 
-### Task Batching
+### Configuration management
 
 TODO
 
-### Declaratively Plotting
+### Task batching
 
 TODO
 
-### Other Utilities
+### Declaratively plotting
+
+TODO
+
+### Other utilities
 
 TODO
 
