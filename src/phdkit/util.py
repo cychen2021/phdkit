@@ -17,6 +17,7 @@ def unimplemented(message: str | None = None) -> Any:
     else:
         raise UnimplementedError(message)
 
+
 def todo(message: str | None = None) -> Any:
     unimplemented(message)
 
