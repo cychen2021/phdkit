@@ -15,6 +15,9 @@ def unimplemented(message: str | None = None) -> None:
     else:
         raise UnimplementedError(message)
 
+def todo(message: str | None = None) -> None:
+    unimplemented(message)
+
 
 def strip_indent(text: str, *, keep_trailing_ws: bool = False) -> str:
     '''Strip leading whitespace from each line in the text.
