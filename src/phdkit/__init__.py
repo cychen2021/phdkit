@@ -1,4 +1,4 @@
-from . import batching, configlib, gplog, log, mapreduce, pbar, autoretry
+from . import batching, configlib, gplot, log, mapreduce, pbar, autoretry
 from .util import unimplemented, strip_indent, protect_indent, UnimplementedError
 from .infix_fn import infix
 
