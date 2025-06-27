@@ -357,7 +357,6 @@ class Descriptor[I, V](Protocol):
         ...
 
 
-@staticmethod
 def mangle_attr(the_self, attr):
     # return public attrs unchanged
     if not attr.startswith("__") or attr.endswith("__") or "." in attr:
