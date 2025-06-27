@@ -1,3 +1,5 @@
+from typing import Any
+
 __all__ = ["UnimplementedError", "unimplemented", "strip_indent", "protect_indent"]
 
 
@@ -9,13 +11,13 @@ class UnimplementedError(Exception):
         return f"Unimplemented Error: {self.message}"
 
 
-def unimplemented(message: str | None = None) -> None:
+def unimplemented(message: str | None = None) -> Any:
     if message is None:
         raise UnimplementedError()
     else:
         raise UnimplementedError(message)
 
-def todo(message: str | None = None) -> None:
+def todo(message: str | None = None) -> Any:
     unimplemented(message)
 
 
