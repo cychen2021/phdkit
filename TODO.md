@@ -6,3 +6,4 @@
 - [ ] Consider how to handle configurations of base classes in `configlib`
 - [ ] Add error messages if using a configuration setting before it is loaded
 - [ ] Consider how to use `configlib` for the context manager protocol
+- [ ] Explore how to handle optional settings in `configlib`
