@@ -31,7 +31,10 @@ Attributes:
     setting: A decorator to mark a method as a setting.
 """
 
+# TODO: Add docs for `configurable_fn` and `setting_fn`
+
 from .configurable import setting, configurable, Config, config
+from .configurable_fn import configurable_fn, setting_fn
 from .tomlreader import TomlReader
 from .configreader import ConfigLoader
 
@@ -43,4 +46,6 @@ __all__ = [
     "Config",
     "setting",
     "config",
+    "configurable_fn",
+    "setting_fn"
 ]
