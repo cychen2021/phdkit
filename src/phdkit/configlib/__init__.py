@@ -47,5 +47,5 @@ __all__ = [
     "setting",
     "config",
     "configurable_fn",
-    "setting_fn"
+    "setting_fn",
 ]
