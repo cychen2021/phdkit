@@ -61,9 +61,9 @@ def strip_indent(text: str, *, keep_trailing_ws: bool = False) -> str:
     new_lines = []
     for line in lines:
         stripped_line = line.lstrip()
-        if stripped_line[0:1] == "||":
+        if len(stripped_line) > 1 and stripped_line[0:2] == "||":
             new_line = line[: len(line) - len(stripped_line)] + "|" + stripped_line[2:]
-        elif stripped_line[0] == "|":
+        elif stripped_line and stripped_line[0] == "|":
             new_line = stripped_line[1:]
         else:
             new_line = line
