@@ -44,7 +44,6 @@ class __Config:
             type,
             tuple[str, ConfigLoader | None, ConfigLoader | None, dict[str, "Setting"]],
         ] = {}
-        self.default_values: dict[type, dict[str, Any]] = {}
 
     def __getitem__(self, instance: Any):
         """Another form of the `load` method.
@@ -170,8 +169,7 @@ class __Config:
         self,
         klass: Type[I],
         config_key: str,
-        setting: "Setting[I, V]",
-        default: _Unset | V = Unset,
+        setting: "Setting[I, V]"
     ):
         """Add a setting to a class.
 
@@ -187,8 +185,6 @@ class __Config:
         if klass not in self.registry:
             raise ValueError(f"Class {klass} is not registered")
         self.registry[klass][3][config_key] = setting
-        if default is not Unset:
-            self.default_values[klass][config_key] = default
 
     def add_default_value[I](self, klass: Type[I], config_key: str, value: object):
         """Add a default value for a setting.
@@ -201,9 +197,6 @@ class __Config:
             config_key: The config key to use for this setting. If provided, only the parts of the config file that correspond to this key will be loaded.
             value: The default value to add
         """
-        if klass not in self.default_values:
-            self.default_values[klass] = {}
-        self.default_values[klass][config_key] = value
 
     def get_setting[I](self, klass: Type[I], config_key: str) -> "Setting[I, Any]":
         """Get the settings for a class with a config key.
@@ -298,18 +291,22 @@ class __Config:
                 config = config[key]
 
         for key, setting in settings.items():
+            keyerror = None
             try:
                 value = __load_key(key, config)
             except KeyError as e:
-                if config_key in self.default_values[klass]:
-                    # If the key is not found in the config, use the default value
-                    return self.default_values[klass][key]
-                raise e
+                keyerror = e
             if setting.fset is None:
                 raise NotImplementedError(
                     f"Setting {key} does not have a setter method. Please implement a setter method for this setting."
                 )
-            setting.fset(instance, value)
+            if keyerror is None:
+                setting.fset(instance, value)
+            else:
+                if setting.default is Unset:
+                    raise keyerror
+                else:
+                    setting.fset(instance, setting.default)
 
 
 Config = __Config()
@@ -323,9 +320,11 @@ class Setting[I, V]:
         self,
         fget: Callable[[I], V] | None = None,
         fset: Callable[[I, V], None] | None = None,
+        default: _Unset | Any = Unset,
     ):
         self.fget = fget
         self.fset = fset
+        self.default = default
 
     def __get__(self, instance: I | None, owner: Type[I]) -> V:
         if self.fget is None:
@@ -446,26 +445,19 @@ class __setting:
                 attr_name = f"__{name}"
 
                 def fget(the_self: Any) -> V:
-                    if not hasattr(the_self, mangle_attr(the_self, attr_name)):
-                        if default is Unset:
-                            raise ValueError(
-                                f"Setting {name} does not have a value set. Please set a value for this setting."
-                            )
-                        setattr(the_self, mangle_attr(the_self, attr_name), default)
                     return getattr(the_self, mangle_attr(the_self, attr_name))
 
                 def fset(the_self: Any, value: V) -> None:
                     setattr(the_self, mangle_attr(the_self, attr_name), value)
 
-                s = Setting(fget=fget, fset=fset)
+                s = Setting(fget=fget, fset=fset, default=default)
                 self.setting: Setting[Any, V] = s
-                self.default = default
 
             def __set_name__(self, owner: Type[I], name: str):
                 # The `setting` decorator will be invoked before the `configurable` decorator.
                 #  We must guarantee the existence of the registry.
                 Config.update(owner)
-                Config.add_setting(owner, config_key, self.setting, self.default)
+                Config.add_setting(owner, config_key, self.setting)
 
             @overload
             def __get__(self, instance: I, owner: Type[I]) -> V:
@@ -522,9 +514,8 @@ class __setting:
                 self, method: Callable[[I], V], *, default: _Unset | V = Unset
             ):
                 self.method = method
-                s = Setting(fget=self.method, fset=None)
+                s = Setting(fget=self.method, fset=None, default=default)
                 self.setting = s
-                self.default = default
                 self.owner: Type[I] | None = None
 
             def __set_name__(self, owner: Type[I], name: str):
@@ -534,7 +525,7 @@ class __setting:
                     raise ValueError(
                         f"Config key {config_key} is already registered for class {owner}"
                     )
-                Config.add_setting(owner, config_key, self.setting, self.default)
+                Config.add_setting(owner, config_key, self.setting)
 
             @overload
             def __get__(self, instance: I, owner: Type[I]) -> V:
