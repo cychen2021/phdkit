@@ -421,7 +421,7 @@ class __setting:
         pass
 
     def __call__[T, S](
-        self, config_key: str, *, default: _Unset | Any = Unset # XXX: Could we improve it to a more specific type?
+        self, config_key: str, *, default: _Unset | Any = Unset
     ) -> Callable[[Callable[[T], S]], Descriptor[T, S]]:
         """Decorator to register a method as a setting.
 
@@ -434,7 +434,8 @@ class __setting:
         """
 
         class __decorator[I, V]:
-            def __init__(self, method: Callable[[I], V], default: _Unset | V = Unset):
+            # XXX: Could we refine `default` to a more specific type?
+            def __init__(self, method: Callable[[I], V], default: _Unset | Any = Unset):
                 self.method = method
                 name = self.method.__name__
                 attr_name = f"__{name}"
