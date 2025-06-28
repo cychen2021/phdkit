@@ -242,6 +242,8 @@ class __Config:
         def __load_key(key: str, config: dict):
             current_config = config
             for key in split_key(key):
+                if key not in current_config:
+                    raise KeyError(f"Key {key} not found in configuration file")
                 current_config = current_config[key]
             return current_config
 
@@ -292,14 +294,17 @@ class __Config:
             route = split_key(config_key)
             for key in route:
                 if key not in config:
-                    if config_key in self.default_values[klass]:
-                        # If the key is not found in the config, use the default value
-                        return self.default_values[klass][config_key]
                     raise KeyError(f"Key {key} not found in configuration file")
                 config = config[key]
 
         for key, setting in settings.items():
-            value = __load_key(key, config)
+            try:
+                value = __load_key(key, config)
+            except KeyError as e:
+                if config_key in self.default_values[klass]:
+                    # If the key is not found in the config, use the default value
+                    return self.default_values[klass][config_key]
+                raise e
             if setting.fset is None:
                 raise NotImplementedError(
                     f"Setting {key} does not have a setter method. Please implement a setter method for this setting."
