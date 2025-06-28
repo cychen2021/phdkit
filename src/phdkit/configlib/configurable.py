@@ -12,10 +12,12 @@ from .configreader import ConfigLoader
 
 class _Unset:
     __instance = None
+
     def __new__(cls) -> "_Unset":
         if cls.__instance is None:
             cls.__instance = super().__new__(cls)
         return cls.__instance
+
 
 Unset = _Unset()
 
@@ -165,7 +167,11 @@ class __Config:
         return klass in self.registry and self.registry[klass][0] == config_key
 
     def add_setting[I, V](
-        self, klass: Type[I], config_key: str, setting: "Setting[I, V]", default: _Unset | V = Unset
+        self,
+        klass: Type[I],
+        config_key: str,
+        setting: "Setting[I, V]",
+        default: _Unset | V = Unset,
     ):
         """Add a setting to a class.
 
@@ -184,9 +190,7 @@ class __Config:
         if default is not Unset:
             self.default_values[klass][config_key] = default
 
-    def add_default_value[I](
-        self, klass: Type[I], config_key: str, value: object
-    ):
+    def add_default_value[I](self, klass: Type[I], config_key: str, value: object):
         """Add a default value for a setting.
 
         This method adds a default value for a setting. The setting should be an instance of the Setting class.
@@ -489,7 +493,9 @@ class __setting:
                 )
 
         # The wrapper is only to please the type checker
-        def __wrapper(method: Callable[[T], S], *, default: _Unset | S = Unset) -> __decorator[T, S]:
+        def __wrapper(
+            method: Callable[[T], S], *, default: _Unset | S = Unset
+        ) -> __decorator[T, S]:
             return __decorator(method, default=default)
 
         return __wrapper
@@ -500,7 +506,9 @@ class __setting:
         """Decorator to register a method as a setting getter."""
 
         class __getter[I, V]:
-            def __init__(self, method: Callable[[I], V], *, default: _Unset | V = Unset):
+            def __init__(
+                self, method: Callable[[I], V], *, default: _Unset | V = Unset
+            ):
                 self.method = method
                 s = Setting(fget=self.method, fset=None)
                 self.setting = s
