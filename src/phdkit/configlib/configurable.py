@@ -165,10 +165,7 @@ class __Config:
         return klass in self.registry and self.registry[klass][0] == config_key
 
     def add_setting[I, V](
-        self,
-        klass: Type[I],
-        config_key: str,
-        setting: "Setting[I, V]"
+        self, klass: Type[I], config_key: str, setting: "Setting[I, V]"
     ):
         """Add a setting to a class.
 
@@ -484,9 +481,7 @@ class __setting:
                 )
 
         # The wrapper is only to please the type checker
-        def __wrapper(
-            method: Callable[[T], S]
-        ) -> __decorator[T, S]:
+        def __wrapper(method: Callable[[T], S]) -> __decorator[T, S]:
             return __decorator(method, default=default)
 
         return __wrapper
