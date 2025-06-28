@@ -494,7 +494,7 @@ class __setting:
 
         # The wrapper is only to please the type checker
         def __wrapper(
-            method: Callable[[T], S], *, default: _Unset | S = Unset
+            method: Callable[[T], S]
         ) -> __decorator[T, S]:
             return __decorator(method, default=default)
 
