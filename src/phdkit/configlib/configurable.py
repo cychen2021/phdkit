@@ -122,7 +122,6 @@ class __Config:
             config_key: The config key to use for this class. If provided, only the parts of the config file that correspond to this key will be loaded.
         """
         self.registry[klass] = (config_key, load_config, load_env, {})
-        self.default_values[klass] = {}
 
     def update[T](
         self,
@@ -185,18 +184,6 @@ class __Config:
         if klass not in self.registry:
             raise ValueError(f"Class {klass} is not registered")
         self.registry[klass][3][config_key] = setting
-
-    def add_default_value[I](self, klass: Type[I], config_key: str, value: object):
-        """Add a default value for a setting.
-
-        This method adds a default value for a setting. The setting should be an instance of the Setting class.
-        Old default values, if present, will be replaced.
-
-        Args:
-            klass: The class to add the default value to
-            config_key: The config key to use for this setting. If provided, only the parts of the config file that correspond to this key will be loaded.
-            value: The default value to add
-        """
 
     def get_setting[I](self, klass: Type[I], config_key: str) -> "Setting[I, Any]":
         """Get the settings for a class with a config key.
