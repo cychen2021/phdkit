@@ -364,6 +364,7 @@ class Logger:
         if output.id is not None:
             del self.__outputs[output.id]
 
+    # TODO: Maybe don't add a newline between the header and the first line of the message for text outputs?
     def log(
         self,
         level: Literal["debug", "info", "warning", "error", "critical"] | LogLevel,
