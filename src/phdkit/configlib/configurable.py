@@ -10,6 +10,28 @@ from typing import (
 from .configreader import ConfigLoader
 
 
+class _MaybeUnset[T]:
+    def __init__(self, value: T | None, is_set: bool) -> None:
+        assert (value is not None and is_set) or (value is None and not is_set)
+        self.value = value
+        self._is_set = is_set
+
+    @classmethod
+    def some(cls, value: T) -> "_MaybeUnset[T]":
+        """Create a MaybeUnset instance with a value."""
+        return cls(value, True)
+    
+    def is_some(self) -> bool:
+        """Check if the MaybeUnset instance has a value."""
+        return self._is_set
+
+    @classmethod
+    def unset(cls) -> "_MaybeUnset[T]":
+        """Create a MaybeUnset instance without a value."""
+        return cls(None, False)
+
+
+
 def split_key(key: str) -> list[str]:
     return key.split(".")
 
@@ -32,6 +54,7 @@ class __Config:
             type,
             tuple[str, ConfigLoader | None, ConfigLoader | None, dict[str, "Setting"]],
         ] = {}
+        self.default_values: dict[type, dict[str, Any]] = {}
 
     def __getitem__(self, instance: Any):
         """Another form of the `load` method.
@@ -110,6 +133,7 @@ class __Config:
             config_key: The config key to use for this class. If provided, only the parts of the config file that correspond to this key will be loaded.
         """
         self.registry[klass] = (config_key, load_config, load_env, {})
+        self.default_values[klass] = {}
 
     def update[T](
         self,
@@ -152,8 +176,8 @@ class __Config:
         """
         return klass in self.registry and self.registry[klass][0] == config_key
 
-    def add_setting[I, V](
-        self, klass: Type[I], config_key: str, setting: "Setting[I, V]"
+    def add_setting[I, V, S](
+        self, klass: Type[I], config_key: str, setting: "Setting[I, V]", default: _MaybeUnset[S] = _MaybeUnset.unset()
     ):
         """Add a setting to a class.
 
@@ -169,6 +193,25 @@ class __Config:
         if klass not in self.registry:
             raise ValueError(f"Class {klass} is not registered")
         self.registry[klass][3][config_key] = setting
+        if default.is_some():
+            self.default_values[klass][config_key] = default.value
+
+    def add_default_value[I, object](
+        self, klass: Type[I], config_key: str, value: object
+    ):
+        """Add a default value for a setting.
+
+        This method adds a default value for a setting. The setting should be an instance of the Setting class.
+        Old default values, if present, will be replaced.
+
+        Args:
+            klass: The class to add the default value to
+            config_key: The config key to use for this setting. If provided, only the parts of the config file that correspond to this key will be loaded.
+            value: The default value to add
+        """
+        if klass not in self.default_values:
+            self.default_values[klass] = {}
+        self.default_values[klass][config_key] = value
 
     def get_setting[I](self, klass: Type[I], config_key: str) -> "Setting[I, Any]":
         """Get the settings for a class with a config key.
@@ -257,6 +300,9 @@ class __Config:
             route = split_key(config_key)
             for key in route:
                 if key not in config:
+                    if config_key in self.default_values[klass]:
+                        # If the key is not found in the config, use the default value
+                        return self.default_values[klass][config_key]
                     raise KeyError(f"Key {key} not found in configuration file")
                 config = config[key]
 
@@ -383,7 +429,7 @@ class __setting:
         pass
 
     def __call__[T, S](
-        self, config_key: str
+        self, config_key: str, *, default: _MaybeUnset[S] = _MaybeUnset.unset()
     ) -> Callable[[Callable[[T], S]], Descriptor[T, S]]:
         """Decorator to register a method as a setting.
 
@@ -414,7 +460,7 @@ class __setting:
                 # The `setting` decorator will be invoked before the `configurable` decorator.
                 #  We must guarantee the existence of the registry.
                 Config.update(owner)
-                Config.add_setting(owner, config_key, self.setting)
+                Config.add_setting(owner, config_key, self.setting, default)
 
             @overload
             def __get__(self, instance: I, owner: Type[I]) -> V:
@@ -469,8 +515,10 @@ class __setting:
                 self.method = method
                 s = Setting(fget=self.method, fset=None)
                 self.setting = s
+                self.owner: Type[I] | None = None
 
             def __set_name__(self, owner: Type[I], name: str):
+                self.owner = owner
                 Config.update(owner)
                 if Config.contains(owner, config_key):
                     raise ValueError(
@@ -510,8 +558,10 @@ class __setting:
                     )
                 self.setting.fset(instance, value)
 
-            def setter(self, fset: Callable[[I, V], None]) -> "__getter[I, V]":
+            def setter(self, fset: Callable[[I, V], None], *, default: _MaybeUnset[V] = _MaybeUnset.unset()) -> "__getter[I, V]":
                 self.setting.fset = fset
+                assert self.owner is not None
+                Config.add_default_value(self.owner, config_key, default)
                 return self
 
         def __wrapper(method: Callable[[T], S]) -> __getter[T, S]:
