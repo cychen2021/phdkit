@@ -303,7 +303,7 @@ class __Config:
             except KeyError as e:
                 if config_key in self.default_values[klass]:
                     # If the key is not found in the config, use the default value
-                    return self.default_values[klass][config_key]
+                    return self.default_values[klass][key]
                 raise e
             if setting.fset is None:
                 raise NotImplementedError(
@@ -446,6 +446,12 @@ class __setting:
                 attr_name = f"__{name}"
 
                 def fget(the_self: Any) -> V:
+                    if not hasattr(the_self, mangle_attr(the_self, attr_name)):
+                        if default is Unset:
+                            raise ValueError(
+                                f"Setting {name} does not have a value set. Please set a value for this setting."
+                            )
+                        setattr(the_self, mangle_attr(the_self, attr_name), default)
                     return getattr(the_self, mangle_attr(the_self, attr_name))
 
                 def fset(the_self: Any, value: V) -> None:
