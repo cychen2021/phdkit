@@ -10,26 +10,14 @@ from typing import (
 from .configreader import ConfigLoader
 
 
-class _MaybeUnset[T]:
-    def __init__(self, value: T | None, is_set: bool) -> None:
-        assert (value is not None and is_set) or (value is None and not is_set)
-        self.value = value
-        self._is_set = is_set
+class _Unset:
+    __instance = None
+    def __new__(cls) -> "_Unset":
+        if cls.__instance is None:
+            cls.__instance = super().__new__(cls)
+        return cls.__instance
 
-    @classmethod
-    def some(cls, value: T) -> "_MaybeUnset[T]":
-        """Create a MaybeUnset instance with a value."""
-        return cls(value, True)
-    
-    def is_some(self) -> bool:
-        """Check if the MaybeUnset instance has a value."""
-        return self._is_set
-
-    @classmethod
-    def unset(cls) -> "_MaybeUnset[T]":
-        """Create a MaybeUnset instance without a value."""
-        return cls(None, False)
-
+Unset = _Unset()
 
 
 def split_key(key: str) -> list[str]:
@@ -176,8 +164,8 @@ class __Config:
         """
         return klass in self.registry and self.registry[klass][0] == config_key
 
-    def add_setting[I, V, S](
-        self, klass: Type[I], config_key: str, setting: "Setting[I, V]", default: _MaybeUnset[S] = _MaybeUnset.unset()
+    def add_setting[I, V](
+        self, klass: Type[I], config_key: str, setting: "Setting[I, V]", default: _Unset | V = Unset
     ):
         """Add a setting to a class.
 
@@ -193,10 +181,10 @@ class __Config:
         if klass not in self.registry:
             raise ValueError(f"Class {klass} is not registered")
         self.registry[klass][3][config_key] = setting
-        if default.is_some():
-            self.default_values[klass][config_key] = default.value
+        if default is not Unset:
+            self.default_values[klass][config_key] = default
 
-    def add_default_value[I, object](
+    def add_default_value[I](
         self, klass: Type[I], config_key: str, value: object
     ):
         """Add a default value for a setting.
@@ -429,7 +417,7 @@ class __setting:
         pass
 
     def __call__[T, S](
-        self, config_key: str, *, default: _MaybeUnset[S] = _MaybeUnset.unset()
+        self, config_key: str, *, default: _Unset | S = Unset
     ) -> Callable[[Callable[[T], S]], Descriptor[T, S]]:
         """Decorator to register a method as a setting.
 
@@ -442,7 +430,7 @@ class __setting:
         """
 
         class __decorator[I, V]:
-            def __init__(self, method: Callable[[I], V]):
+            def __init__(self, method: Callable[[I], V], default: _Unset | V = Unset):
                 self.method = method
                 name = self.method.__name__
                 attr_name = f"__{name}"
@@ -454,13 +442,14 @@ class __setting:
                     setattr(the_self, mangle_attr(the_self, attr_name), value)
 
                 s = Setting(fget=fget, fset=fset)
-                self.setting = s
+                self.setting: Setting[Any, V] = s
+                self.default = default
 
             def __set_name__(self, owner: Type[I], name: str):
                 # The `setting` decorator will be invoked before the `configurable` decorator.
                 #  We must guarantee the existence of the registry.
                 Config.update(owner)
-                Config.add_setting(owner, config_key, self.setting, default)
+                Config.add_setting(owner, config_key, self.setting, self.default)
 
             @overload
             def __get__(self, instance: I, owner: Type[I]) -> V:
@@ -500,8 +489,8 @@ class __setting:
                 )
 
         # The wrapper is only to please the type checker
-        def __wrapper(method: Callable[[T], S]) -> __decorator[T, S]:
-            return __decorator(method)
+        def __wrapper(method: Callable[[T], S], *, default: _Unset | S = Unset) -> __decorator[T, S]:
+            return __decorator(method, default=default)
 
         return __wrapper
 
@@ -511,10 +500,11 @@ class __setting:
         """Decorator to register a method as a setting getter."""
 
         class __getter[I, V]:
-            def __init__(self, method: Callable[[I], V]):
+            def __init__(self, method: Callable[[I], V], *, default: _Unset | V = Unset):
                 self.method = method
                 s = Setting(fget=self.method, fset=None)
                 self.setting = s
+                self.default = default
                 self.owner: Type[I] | None = None
 
             def __set_name__(self, owner: Type[I], name: str):
@@ -524,7 +514,7 @@ class __setting:
                     raise ValueError(
                         f"Config key {config_key} is already registered for class {owner}"
                     )
-                Config.add_setting(owner, config_key, self.setting)
+                Config.add_setting(owner, config_key, self.setting, self.default)
 
             @overload
             def __get__(self, instance: I, owner: Type[I]) -> V:
@@ -558,10 +548,9 @@ class __setting:
                     )
                 self.setting.fset(instance, value)
 
-            def setter(self, fset: Callable[[I, V], None], *, default: _MaybeUnset[V] = _MaybeUnset.unset()) -> "__getter[I, V]":
+            def setter(self, fset: Callable[[I, V], None]) -> "__getter[I, V]":
                 self.setting.fset = fset
                 assert self.owner is not None
-                Config.add_default_value(self.owner, config_key, default)
                 return self
 
         def __wrapper(method: Callable[[T], S]) -> __getter[T, S]:
