@@ -503,10 +503,8 @@ class __setting:
                 self.method = method
                 s = Setting(fget=self.method, fset=None, default=default)
                 self.setting = s
-                self.owner: Type[I] | None = None
 
             def __set_name__(self, owner: Type[I], name: str):
-                self.owner = owner
                 Config.update(owner)
                 if Config.contains(owner, config_key):
                     raise ValueError(
@@ -548,7 +546,6 @@ class __setting:
 
             def setter(self, fset: Callable[[I, V], None]) -> "__getter[I, V]":
                 self.setting.fset = fset
-                assert self.owner is not None
                 return self
 
         def __wrapper(method: Callable[[T], S]) -> __getter[T, S]:
