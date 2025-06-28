@@ -386,16 +386,21 @@ class Logger:
 
         message_lines = str(message).splitlines()
         idented = []
+        first_line = True
         for line in message_lines:
             if line.strip():
-                idented.append("  " + line)
+                if first_line:
+                    idented.append(line)
+                    first_line = False
+                else:
+                    idented.append(f"  {line}")
             else:
                 idented.append(line)
         indented_message = "\n".join(idented)
 
         if self.__underlying_logger.handlers:
             self.__underlying_logger.log(
-                level_number, f"[{self.name}:{level}] {header}:\n{indented_message}\n"
+                level_number, f"[{self.name}:{level}] {header}: {indented_message}"
             )
         if self.__underlying_jsonl_logger.handlers:
             self.__underlying_jsonl_logger.log(
@@ -413,7 +418,7 @@ class Logger:
         if self.__underlying_logger_with_timestamp.handlers:
             self.__underlying_logger_with_timestamp.log(
                 level_number,
-                f"[{self.name}:{level} @ {timestamp}] {header}:\n{indented_message}\n",
+                f"[{self.name}:{level} @ {timestamp}] {header}: {indented_message}",
             )
         if self.__underlying_jsonl_logger_with_timestamp.handlers:
             self.__underlying_jsonl_logger_with_timestamp.log(
