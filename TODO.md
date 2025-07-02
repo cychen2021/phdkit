@@ -8,3 +8,4 @@
 - [ ] Consider how to use `configlib` for the context manager protocol
 - [x] Explore how to handle optional settings in `configlib`
 - [ ] Add docs for default setting values in `configlib`
+- [ ] Implement `log.watchdog`
