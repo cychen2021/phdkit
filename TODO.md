@@ -10,3 +10,4 @@
 - [ ] Add docs for default setting values in `configlib`
 - [ ] Implement `log.watchdog`
 - [ ] Explore a better way to integrate tqdm with URL libraries
+- [ ] Add a py-tree-sitter wrapper module
