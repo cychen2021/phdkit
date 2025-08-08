@@ -9,7 +9,7 @@ class ScrollPanel:
     def __init__(self, title: str, line_num: int):
         self.title = title
         self.line_num = line_num
-        self.__lines = []
+        self.__lines = [""] * line_num
 
     def __call__(self):
         return Panel(
@@ -41,6 +41,7 @@ def subshell(title: str, line_num: int):
                 **kwargs,
             ) as p,
         ):
+            live.refresh()
             time.sleep(0.5)
             assert p.stdout is not None
             for line in p.stdout:
