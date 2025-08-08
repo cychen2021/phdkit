@@ -9,5 +9,5 @@
 - [x] Explore how to handle optional settings in `configlib`
 - [ ] Add docs for default setting values in `configlib`
 - [ ] Implement `log.watchdog`
-- [ ] Explore a better way to integrate tqdm with URL libraries
+- [ ] Implement the `rich` wrapper module
 - [ ] Add a py-tree-sitter wrapper module

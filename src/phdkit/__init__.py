@@ -1,4 +1,4 @@
-from . import batching, configlib, gplot, log, mapreduce, pbar, autoretry
+from . import batching, configlib, gplot, log, mapreduce, rich, autoretry
 from .util import unimplemented, strip_indent, protect_indent, UnimplementedError
 from .infix_fn import infix
 
@@ -8,7 +8,7 @@ __all__ = [
     "gplog",
     "log",
     "mapreduce",
-    "pbar",
+    "rich",
     "infix",
     "autoretry",
     "unimplemented",
