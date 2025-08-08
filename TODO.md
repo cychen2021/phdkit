@@ -9,5 +9,6 @@
 - [x] Explore how to handle optional settings in `configlib`
 - [ ] Add docs for default setting values in `configlib`
 - [ ] Implement `log.watchdog`
-- [ ] Implement the `rich` wrapper module
+- [x] Implement the `subshell` functionality of the `rich` wrapper module
+- [ ] Implement the `dyntqdm` functionality of the `rich` wrapper module
 - [ ] Add a py-tree-sitter wrapper module
