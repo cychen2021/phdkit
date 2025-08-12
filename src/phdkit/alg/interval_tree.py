@@ -5,6 +5,8 @@ and querying intervals. It's particularly useful for problems involving overlapp
 intervals, range queries, and conflict detection in scheduling systems.
 """
 
+# TODO: Audit this whole "vibe-coding" source file manually
+
 from typing import List, Optional, Union, Any, Generator
 from dataclasses import dataclass
 from enum import Enum
