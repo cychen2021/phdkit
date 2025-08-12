@@ -12,6 +12,7 @@ from enum import Enum
 
 class Color(Enum):
     """Colors for Red-Black tree balancing."""
+
     RED = "red"
     BLACK = "black"
 
@@ -19,12 +20,13 @@ class Color(Enum):
 @dataclass
 class Interval:
     """Represents an interval with start and end points.
-    
+
     Args:
         start: The beginning of the interval (inclusive).
         end: The end of the interval (inclusive).
         data: Optional data associated with the interval.
     """
+
     start: Union[int, float]
     end: Union[int, float]
     data: Any = None
@@ -32,17 +34,19 @@ class Interval:
     def __post_init__(self) -> None:
         """Validate interval properties after initialization."""
         if self.start > self.end:
-            raise ValueError(f"Invalid interval: start ({self.start}) must be <= end ({self.end})")
+            raise ValueError(
+                f"Invalid interval: start ({self.start}) must be <= end ({self.end})"
+            )
 
     def overlaps(self, other: "Interval") -> bool:
         """Check if this interval overlaps with another interval.
-        
+
         Uses half-open intervals: [start, end).
         Special case: point intervals [x, x] are treated as single points.
-        
+
         Args:
             other: The interval to check for overlap.
-            
+
         Returns:
             True if intervals overlap, False otherwise.
         """
@@ -51,19 +55,19 @@ class Interval:
             return other.contains_point(self.start)
         if other.start == other.end:  # other is a point interval
             return self.contains_point(other.start)
-        
+
         # Normal interval overlap check
         return self.start < other.end and other.start < self.end
 
     def contains_point(self, point: Union[int, float]) -> bool:
         """Check if this interval contains a specific point.
-        
+
         Uses half-open intervals: [start, end).
         Special case: point intervals [x, x] are treated as containing only point x.
-        
+
         Args:
             point: The point to check.
-            
+
         Returns:
             True if the point is within the interval, False otherwise.
         """
@@ -86,14 +90,14 @@ class Interval:
 
 class IntervalNode:
     """Node in the interval tree.
-    
+
     Each node stores an interval and maintains the maximum endpoint
     of all intervals in its subtree for efficient querying.
     """
 
     def __init__(self, interval: Interval) -> None:
         """Initialize an interval tree node.
-        
+
         Args:
             interval: The interval stored in this node.
         """
@@ -119,7 +123,7 @@ class IntervalNode:
 
 class IntervalTree:
     """Red-Black tree based interval tree for efficient interval operations.
-    
+
     This implementation provides O(log n) insertion, deletion, and O(log n + k)
     overlap queries, where k is the number of overlapping intervals found.
     """
@@ -131,7 +135,7 @@ class IntervalTree:
 
     def insert(self, interval: Interval) -> None:
         """Insert an interval into the tree.
-        
+
         Args:
             interval: The interval to insert.
         """
@@ -173,7 +177,7 @@ class IntervalTree:
 
     def _fix_insert(self, node: IntervalNode) -> None:
         """Fix Red-Black tree properties after insertion.
-        
+
         Args:
             node: The newly inserted node to fix.
         """
@@ -182,7 +186,7 @@ class IntervalTree:
             grandparent = parent.parent
             if grandparent is None:
                 break
-                
+
             if parent == grandparent.left:
                 uncle = grandparent.right
                 if uncle is not None and uncle.color == Color.RED:
@@ -237,7 +241,7 @@ class IntervalTree:
 
     def _rotate_left(self, node: IntervalNode) -> None:
         """Perform left rotation for tree balancing.
-        
+
         Args:
             node: The node to rotate around.
         """
@@ -266,7 +270,7 @@ class IntervalTree:
 
     def _rotate_right(self, node: IntervalNode) -> None:
         """Perform right rotation for tree balancing.
-        
+
         Args:
             node: The node to rotate around.
         """
@@ -295,10 +299,10 @@ class IntervalTree:
 
     def search_overlaps(self, interval: Interval) -> List[Interval]:
         """Find all intervals that overlap with the given interval.
-        
+
         Args:
             interval: The query interval to find overlaps for.
-            
+
         Returns:
             List of intervals that overlap with the query interval.
         """
@@ -307,13 +311,10 @@ class IntervalTree:
         return results
 
     def _search_overlaps_recursive(
-        self, 
-        node: Optional[IntervalNode], 
-        interval: Interval, 
-        results: List[Interval]
+        self, node: Optional[IntervalNode], interval: Interval, results: List[Interval]
     ) -> None:
         """Recursively search for overlapping intervals.
-        
+
         Args:
             node: Current node being examined.
             interval: Query interval.
@@ -336,23 +337,25 @@ class IntervalTree:
 
     def search_point(self, point: Union[int, float]) -> List[Interval]:
         """Find all intervals that contain the given point.
-        
+
         Args:
             point: The point to search for.
-            
+
         Returns:
             List of intervals that contain the point.
         """
         point_interval = Interval(point, point)
         return self.search_overlaps(point_interval)
 
-    def search(self, start: Union[int, float], end: Union[int, float]) -> List[Interval]:
+    def search(
+        self, start: Union[int, float], end: Union[int, float]
+    ) -> List[Interval]:
         """Find all intervals that overlap with the given range.
-        
+
         Args:
             start: Start of the query range.
             end: End of the query range.
-            
+
         Returns:
             List of intervals that overlap with the query range.
         """
@@ -361,12 +364,12 @@ class IntervalTree:
 
     def query_point(self, point: Union[int, float]) -> List[Interval]:
         """Find all intervals that contain the given point.
-        
+
         This is an alias for search_point for convenience.
-        
+
         Args:
             point: The point to search for.
-            
+
         Returns:
             List of intervals that contain the point.
         """
@@ -374,10 +377,10 @@ class IntervalTree:
 
     def delete(self, interval: Interval) -> bool:
         """Delete an interval from the tree.
-        
+
         Args:
             interval: The interval to delete.
-            
+
         Returns:
             True if the interval was found and deleted, False otherwise.
         """
@@ -391,18 +394,20 @@ class IntervalTree:
 
     def _find_node(self, interval: Interval) -> Optional[IntervalNode]:
         """Find the node containing the specified interval.
-        
+
         Args:
             interval: The interval to find.
-            
+
         Returns:
             The node containing the interval, or None if not found.
         """
         node = self.root
         while node is not None:
-            if (node.interval.start == interval.start and 
-                node.interval.end == interval.end and
-                node.interval.data == interval.data):
+            if (
+                node.interval.start == interval.start
+                and node.interval.end == interval.end
+                and node.interval.data == interval.data
+            ):
                 return node
             elif interval.start <= node.interval.start:
                 node = node.left
@@ -412,7 +417,7 @@ class IntervalTree:
 
     def _delete_node(self, node: IntervalNode) -> None:
         """Delete a specific node from the tree.
-        
+
         Args:
             node: The node to delete.
         """
@@ -467,10 +472,10 @@ class IntervalTree:
 
     def _find_min(self, node: IntervalNode) -> IntervalNode:
         """Find the minimum node in a subtree.
-        
+
         Args:
             node: Root of the subtree.
-            
+
         Returns:
             The node with the minimum interval start value.
         """
@@ -480,7 +485,7 @@ class IntervalTree:
 
     def is_empty(self) -> bool:
         """Check if the tree is empty.
-        
+
         Returns:
             True if the tree contains no intervals, False otherwise.
         """
@@ -503,12 +508,14 @@ class IntervalTree:
         """Iterate over all intervals in the tree in sorted order."""
         yield from self._inorder_traversal(self.root)
 
-    def _inorder_traversal(self, node: Optional[IntervalNode]) -> Generator[Interval, None, None]:
+    def _inorder_traversal(
+        self, node: Optional[IntervalNode]
+    ) -> Generator[Interval, None, None]:
         """Perform inorder traversal of the tree.
-        
+
         Args:
             node: Current node in traversal.
-            
+
         Yields:
             Intervals in sorted order by start point.
         """
@@ -519,7 +526,7 @@ class IntervalTree:
 
     def get_all_intervals(self) -> List[Interval]:
         """Get all intervals in the tree.
-        
+
         Returns:
             List of all intervals sorted by start point.
         """
