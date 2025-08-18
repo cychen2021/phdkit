@@ -384,6 +384,15 @@ class Descriptor[I, V](Protocol):
 
 
 def mangle_attr(the_self, attr):
+    """Mangle attribute name according to Python's name mangling rules.
+    
+    Args:
+        the_self: The instance or class to mangle the attribute for.
+        attr: The attribute name to mangle.
+        
+    Returns:
+        The mangled attribute name.
+    """
     # return public attrs unchanged
     if not attr.startswith("__") or attr.endswith("__") or "." in attr:
         return attr
@@ -392,6 +401,38 @@ def mangle_attr(the_self, attr):
         the_self = the_self.__class__
     # mangle attr
     return f"_{the_self.__name__.lstrip('_')}{attr}"
+
+
+def find_mangled_attr(instance, attr_name):
+    """Find a mangled attribute by searching through the inheritance hierarchy.
+    
+    This function searches for a mangled attribute starting with the instance's class
+    and moving up the inheritance hierarchy until it finds the attribute or exhausts
+    all parent classes.
+    
+    Args:
+        instance: The instance to search for the attribute on.
+        attr_name: The unmangle attribute name (e.g., "__field_name").
+        
+    Returns:
+        The value of the found attribute.
+        
+    Raises:
+        AttributeError: If the attribute is not found in any class in the hierarchy.
+    """
+    # return public attrs unchanged
+    if not attr_name.startswith("__") or attr_name.endswith("__") or "." in attr_name:
+        return getattr(instance, attr_name)
+    
+    # Get the class hierarchy (MRO - Method Resolution Order)
+    cls = instance.__class__
+    for klass in cls.__mro__:
+        mangled_name = f"_{klass.__name__.lstrip('_')}{attr_name}"
+        if hasattr(instance, mangled_name):
+            return getattr(instance, mangled_name)
+    
+    # If not found in any class, raise AttributeError
+    raise AttributeError(f"'{cls.__name__}' object has no attribute '{attr_name}' (searched through inheritance hierarchy)")
 
 
 class __setting:
@@ -429,7 +470,7 @@ class __setting:
                 attr_name = f"__{name}"
 
                 def fget(the_self: Any) -> V:
-                    return getattr(the_self, mangle_attr(the_self, attr_name))
+                    return find_mangled_attr(the_self, attr_name)
 
                 def fset(the_self: Any, value: V) -> None:
                     setattr(the_self, mangle_attr(the_self, attr_name), value)
