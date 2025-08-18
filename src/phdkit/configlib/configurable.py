@@ -212,9 +212,37 @@ class __Config:
             env_file: The path to the environment file. Secret values should be loaded from this file.
         """
         klass = type(instance)
-        if klass not in self.registry:
-            raise ValueError(f"Class {klass} is not registered")
-        config_key, load_config, load_env, settings = self.registry[klass]
+        
+        # Find all settings from the class hierarchy
+        all_settings: dict[str, "Setting"] = {}
+        config_key = ""
+        load_config = None
+        load_env = None
+        
+        # Search through the Method Resolution Order (MRO) to find all registered settings
+        for cls in klass.__mro__:
+            if cls in self.registry:
+                cls_config_key, cls_load_config, cls_load_env, cls_settings = self.registry[cls]
+                
+                # Use the most specific (first found) configuration loader and config key
+                if load_config is None:
+                    config_key = cls_config_key
+                    load_config = cls_load_config
+                    load_env = cls_load_env
+                
+                # Add settings from this class (more specific settings override parent settings)
+                for setting_key, setting in cls_settings.items():
+                    if setting_key not in all_settings:
+                        all_settings[setting_key] = setting
+
+        if not all_settings:
+            # No settings found in any parent class
+            return
+        
+        if load_config is None:
+            raise ValueError(
+                f"Config file loader is not provided for class {klass} or any of its parent classes. Please provide one."
+            )
 
         def __load_key(key: str, config: dict):
             current_config = config
@@ -253,10 +281,6 @@ class __Config:
 
             return result
 
-        if load_config is None:
-            raise ValueError(
-                f"Config file loader is not provided for class {klass}. Please provide one."
-            )
         config = load_config(config_file)
         if load_env:
             env_config = load_env(env_file)
@@ -274,7 +298,7 @@ class __Config:
                     raise KeyError(f"Key {key} not found in configuration file")
                 config = config[key]
 
-        for key, setting in settings.items():
+        for key, setting in all_settings.items():
             keyerror = None
             try:
                 value = __load_key(key, config)
