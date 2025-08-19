@@ -212,24 +212,26 @@ class __Config:
             env_file: The path to the environment file. Secret values should be loaded from this file.
         """
         klass = type(instance)
-        
+
         # Find all settings from the class hierarchy
         all_settings: dict[str, "Setting"] = {}
         config_key = ""
         load_config = None
         load_env = None
-        
+
         # Search through the Method Resolution Order (MRO) to find all registered settings
         for cls in klass.__mro__:
             if cls in self.registry:
-                cls_config_key, cls_load_config, cls_load_env, cls_settings = self.registry[cls]
-                
+                cls_config_key, cls_load_config, cls_load_env, cls_settings = (
+                    self.registry[cls]
+                )
+
                 # Use the most specific (first found) configuration loader and config key
                 if load_config is None:
                     config_key = cls_config_key
                     load_config = cls_load_config
                     load_env = cls_load_env
-                
+
                 # Add settings from this class (more specific settings override parent settings)
                 for setting_key, setting in cls_settings.items():
                     if setting_key not in all_settings:
@@ -238,7 +240,7 @@ class __Config:
         if not all_settings:
             # No settings found in any parent class
             return
-        
+
         if load_config is None:
             raise ValueError(
                 f"Config file loader is not provided for class {klass} or any of its parent classes. Please provide one."
@@ -409,11 +411,11 @@ class Descriptor[I, V](Protocol):
 
 def mangle_attr(the_self, attr):
     """Mangle attribute name according to Python's name mangling rules.
-    
+
     Args:
         the_self: The instance or class to mangle the attribute for.
         attr: The attribute name to mangle.
-        
+
     Returns:
         The mangled attribute name.
     """
@@ -429,34 +431,36 @@ def mangle_attr(the_self, attr):
 
 def find_mangled_attr(instance, attr_name):
     """Find a mangled attribute by searching through the inheritance hierarchy.
-    
+
     This function searches for a mangled attribute starting with the instance's class
     and moving up the inheritance hierarchy until it finds the attribute or exhausts
     all parent classes.
-    
+
     Args:
         instance: The instance to search for the attribute on.
         attr_name: The unmangle attribute name (e.g., "__field_name").
-        
+
     Returns:
         The value of the found attribute.
-        
+
     Raises:
         AttributeError: If the attribute is not found in any class in the hierarchy.
     """
     # return public attrs unchanged
     if not attr_name.startswith("__") or attr_name.endswith("__") or "." in attr_name:
         return getattr(instance, attr_name)
-    
+
     # Get the class hierarchy (MRO - Method Resolution Order)
     cls = instance.__class__
     for klass in cls.__mro__:
         mangled_name = f"_{klass.__name__.lstrip('_')}{attr_name}"
         if hasattr(instance, mangled_name):
             return getattr(instance, mangled_name)
-    
+
     # If not found in any class, raise AttributeError
-    raise AttributeError(f"'{cls.__name__}' object has no attribute '{attr_name}' (searched through inheritance hierarchy)")
+    raise AttributeError(
+        f"'{cls.__name__}' object has no attribute '{attr_name}' (searched through inheritance hierarchy)"
+    )
 
 
 class __setting:
