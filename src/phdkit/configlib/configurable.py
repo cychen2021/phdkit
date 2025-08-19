@@ -552,7 +552,7 @@ class __setting:
         return __wrapper
 
     def getter[T, S](
-        self, config_key: str
+        self, config_key: str, *, default: _Unset | Any = Unset
     ) -> Callable[[Callable[[T], S]], Descriptor[T, S]]:
         """Decorator to register a method as a setting getter."""
 
@@ -609,7 +609,7 @@ class __setting:
                 return self
 
         def __wrapper(method: Callable[[T], S]) -> __getter[T, S]:
-            return __getter(method)
+            return __getter(method, default=default)
 
         return __wrapper
 
