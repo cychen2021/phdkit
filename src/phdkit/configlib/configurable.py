@@ -339,18 +339,18 @@ class Setting[I, V]:
     def __get__(self, instance: I | None, owner: Type[I]) -> V:
         if self.fget is None:
             raise NotImplementedError(
-                f"Setting does not have a getter method. Please implement a getter method for this setting."
+                "Setting does not have a getter method. Please implement a getter method for this setting."
             )
         if instance is None:
             raise NotImplementedError(
-                f"Setting does not have a getter method. Please implement a getter method for this setting."
+                "Setting does not have a getter method. Please implement a getter method for this setting."
             )
         return self.fget(instance)
 
     def __set__(self, instance: I, value: V) -> None:
         if self.fset is None:
             raise NotImplementedError(
-                f"Setting does not have a setter method. Please implement a setter method for this setting."
+                "Setting does not have a setter method. Please implement a setter method for this setting."
             )
         self.fset(instance, value)
 
