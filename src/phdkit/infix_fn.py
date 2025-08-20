@@ -8,8 +8,8 @@ class base_infix(object):
     def __init__(self, function):
         self._function = function
         update_wrapper(self, self._function)
-        self.lbind = type(f"_or_lbind", (lbind,), {"__or__": lbind.__call__})
-        self.rbind = type(f"_or_rbind", (rbind,), {"__ror__": rbind.__call__})
+        self.lbind = type("_or_lbind", (lbind,), {"__or__": lbind.__call__})
+        self.rbind = type("_or_rbind", (rbind,), {"__ror__": rbind.__call__})
 
     def __call__(self, *args, **kwargs):
         return self._function(*args, **kwargs)
@@ -56,7 +56,7 @@ class lbind(object):
 
 def make_infix[P1, P2, T]() -> Callable[[Callable[[P1, P2], T]], Callable[[P1, P2], T]]:
     return type(
-        f"_or_infix",
+        "_or_infix",
         (base_infix,),
         {"__or__": base_infix.left, "__ror__": base_infix.right},
     )
