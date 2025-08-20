@@ -2,11 +2,11 @@
 # requires-python = ">=3.13"
 # dependencies = [
 #     "ruff",
-#     "sh",
 # ]
 # ///
 import os
-import sh
+import subprocess
+import sys
 
 PROJECT_ROOT = os.path.realpath(os.path.dirname(__file__))
 
@@ -22,8 +22,13 @@ def main() -> None:
             ],
         )
     )
+    subprocess.run(
+        ["uvx", "ruff", "format", *files],
+        check=True,
+        stdout=sys.stdout,
+        stderr=sys.stderr,
+    )
 
-    sh.uvx("ruff", "format", *files)
 
 if __name__ == "__main__":
     main()
