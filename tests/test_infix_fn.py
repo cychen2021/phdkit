@@ -10,11 +10,15 @@ def add(x: int, y: int) -> int:
 def concat(a: str, b: str) -> str:
     return f"{a}-{b}"
 
+@infix
+def append(a: str, b: int) -> str:
+    return a + str(b)
+
 
 def test_infix_operator():
-    assert 1 | add | 2 == 3
-    assert "a" | concat | "b" == "a-b"
-
+    assert 1 |add| 2 == 3 # fmt: skip
+    assert "a" |concat| "b" == "a-b" # fmt: skip
+    assert "a" |append| 1 == "a1" # fmt: skip
 
 def test_infix_partial_left_right():
     plus_five = add.left(5)

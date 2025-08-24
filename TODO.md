@@ -11,5 +11,5 @@
 - [ ] Implement `log.watchdog`
 - [x] Implement the `subshell` functionality of the `rich` wrapper module
 - ~~[ ] Implement the `dyntqdm` functionality of the `rich` wrapper module~~ Already support by `rich`
-- [ ] Make `infix_fn` type-safe
+- [x] Make `infix_fn` type-safe
 - [ ] Add a py-tree-sitter wrapper module
