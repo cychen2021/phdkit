@@ -55,6 +55,8 @@ TODO
 
 ### Other utilities
 
+#### Infix functions
+
 TODO
 
 ## Development
