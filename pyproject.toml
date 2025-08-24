@@ -1,6 +1,6 @@
 [project]
 name = "phdkit"
-version = "0.0.2"
+version = "0.0.3"
 description = "Scripting utilities for PhD students, including logging with email notification, task batching, plotting, and more."
 readme = "README.md"
 requires-python = ">=3.12"
