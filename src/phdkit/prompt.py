@@ -39,8 +39,14 @@ class PromptTemplate:
         self._resources_dir = resources_dir
         self._max_depth = max_depth
 
-    def fill_out(self, **kwargs) -> tuple[str, str]:
+    def fill_out(self, *, _ignore_cache_marker: bool=True, **kwargs) -> tuple[str, str] | str:
         """Fill out the prompt template with placeholders substituted.
+
+        Tips:
+
+        - Set `_ignore_cache_marker` to `True` to ignore cache markers and return one single
+         text segment as no cached. The `!<CACHE_MARKER>!` will be eliminated. This is the
+         default behavior.
 
         Return:
             A list of filled prompt snippets. Each snippet is either a segment
@@ -139,6 +145,9 @@ class PromptTemplate:
         # The marker is `!<CACHE_MARKER>!`. Return a 2-tuple:
         #   (prefix_to_cache, suffix_not_cached)
         CACHE_MARKER = "!<CACHE_MARKER>!"
+
+        if _ignore_cache_marker:
+            return expanded.replace(CACHE_MARKER, "")
 
         pos = expanded.find(CACHE_MARKER)
         if pos == -1:
