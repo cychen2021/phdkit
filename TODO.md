@@ -12,4 +12,5 @@
 - [x] Implement the `subshell` functionality of the `rich` wrapper module
 - ~~[ ] Implement the `dyntqdm` functionality of the `rich` wrapper module~~ Already support by `rich`
 - [x] Make `infix_fn` type-safe
+- [ ] Refine the ergonomics of `prompt`
 - [ ] Add a py-tree-sitter wrapper module
