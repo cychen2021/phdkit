@@ -39,7 +39,9 @@ class PromptTemplate:
         self._resources_dir = resources_dir
         self._max_depth = max_depth
 
-    def fill_out(self, *, _ignore_cache_marker: bool=True, **kwargs) -> tuple[str, str] | str:
+    def fill_out(
+        self, *, _ignore_cache_marker: bool = True, **kwargs
+    ) -> tuple[str, str] | str:
         """Fill out the prompt template with placeholders substituted.
 
         Tips:

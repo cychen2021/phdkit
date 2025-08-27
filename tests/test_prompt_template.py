@@ -1,5 +1,6 @@
 from phdkit.prompt import PromptTemplate
 
+
 def test_prompt_include_and_cache_split(tmp_path):
     prompts = tmp_path / "prompts"
     prompts.mkdir()
@@ -86,7 +87,9 @@ def test_lookup_nested_and_attribute_like(tmp_path):
             self.value = x
 
     tpl = PromptTemplate(template="Val: ?<data.value>? and Obj: ?<obj.value>?")
-    cached, non_cached = tpl.fill_out(_ignore_cache_marker=False, data={"value": "D"}, obj=Obj("O"))
+    cached, non_cached = tpl.fill_out(
+        _ignore_cache_marker=False, data={"value": "D"}, obj=Obj("O")
+    )
     assert cached == ""
     assert non_cached == "Val: D and Obj: O"
 
