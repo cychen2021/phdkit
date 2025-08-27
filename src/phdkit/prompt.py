@@ -38,26 +38,33 @@ class PromptTemplate:
         self._prompts_dir = prompts_dir
         self._resources_dir = resources_dir
         self._max_depth = max_depth
-
-    def fill_out(
-        self, *, _ignore_cache_marker: bool = True, **kwargs
-    ) -> tuple[str, str] | str:
+    
+    def fill_out(self, **kwargs) -> str:
         """Fill out the prompt template with placeholders substituted.
 
-        Tips:
-
-        - Set `_ignore_cache_marker` to `True` to ignore cache markers and return one single
-         text segment as no cached. The `!<CACHE_MARKER>!` will be eliminated. This is the
-         default behavior.
+        The `!<CACHE_MARKER>!` marker will be ignored and eliminated.
 
         Return:
-            A list of filled prompt snippets. Each snippet is either a segment
-            within the `!<CACHE_BEGIN>!` and `!<CACHE_END>!` markers, or a segment
-            outside of those markers. If the segment is within the markers, it
-            should be cached when querying the LLM API. The structure of the
-            returned value is as follows:
-            [(segment_1, is_cached_1), (segment_2, is_cached_2), ...]
+            A filled prompt snippet with placeholders substituted.
         """
+
+        return self._fill_out(_ignore_cache_marker=True, **kwargs) # type: ignore
+
+    def fill_out_cached(self, **kwargs) -> tuple[str, str]:
+        """Fill out the prompt template with placeholders substituted.
+
+        The prompt will be splitted at the `!<CACHE_MARKER>!` marker to
+        a prefix to use cache and the rest not to.
+
+        Return:
+            A tuple containing the prefix and the non-cached part of the prompt.
+        """
+
+        return self._fill_out(_ignore_cache_marker=False, **kwargs) # type: ignore
+
+    def _fill_out(
+        self, *, _ignore_cache_marker: bool, **kwargs
+    ) -> tuple[str, str] | str:
         # locate repository root (assumes this file lives at <repo>/src/mc/...)
         prompts_dir = self._prompts_dir
         resources_dir = self._resources_dir
