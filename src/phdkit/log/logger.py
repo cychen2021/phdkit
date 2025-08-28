@@ -98,7 +98,7 @@ class LogOutput:
 
         formatter = logging.Formatter("%(message)s")
         self.__handler.setFormatter(formatter)
-    
+
     def ensure(self):
         if self.__kind == LogOutputKind.FILE:
             dir = os.path.dirname(self.__file)

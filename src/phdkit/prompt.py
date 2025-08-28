@@ -174,7 +174,6 @@ class PromptTemplate:
                 )
                 return expanded
 
-
         pos = expanded.find(CACHE_MARKER)
         if pos == -1:
             # No marker: everything is non-cached (empty cached prefix)
