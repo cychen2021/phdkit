@@ -160,20 +160,20 @@ class PromptTemplate:
             return text
 
         template = getattr(self, "template", "") or ""
-        match _cache_marker_action:
-            case "strip":
-                marker_loc = template.find(CACHE_MARKER)
-                template = (
-                    template[marker_loc + len(CACHE_MARKER) :]
-                    if marker_loc != -1
-                    else template
-                )
-
         expanded = expand(template)
 
         match _cache_marker_action:
-            case "ignore" | "strip":
+            case "ignore":
                 return expanded.replace(CACHE_MARKER, "")
+            case "strip":
+                marker_loc = expanded.find(CACHE_MARKER)
+                expanded = (
+                    expanded[marker_loc + len(CACHE_MARKER) :]
+                    if marker_loc != -1
+                    else expanded
+                )
+                return expanded
+
 
         pos = expanded.find(CACHE_MARKER)
         if pos == -1:
