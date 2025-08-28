@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import Literal, TextIO, override
 import json
 from enum import Enum
@@ -86,6 +87,7 @@ class LogOutput:
         match kind:
             case LogOutputKind.FILE:
                 assert file is not None
+                self.__file = file
                 self.__handler = logging.FileHandler(file)
             case LogOutputKind.CONSOLE:
                 self.__handler = logging.StreamHandler(stream)
@@ -96,6 +98,11 @@ class LogOutput:
 
         formatter = logging.Formatter("%(message)s")
         self.__handler.setFormatter(formatter)
+    
+    def ensure(self):
+        if self.__kind == LogOutputKind.FILE:
+            dir = os.path.dirname(self.__file)
+            os.makedirs(dir, exist_ok=True)
 
     @property
     def level(self) -> LogLevel:
@@ -274,6 +281,9 @@ class Logger:
         auto_timestamp=True,
     )
 
+    def is_enabled(self) -> bool:
+        return bool(self.__outputs)
+
     def __init__(
         self,
         name: str,
@@ -334,6 +344,7 @@ class Logger:
                 self.__outputs[output.id] = output
 
     def add_output(self, output: LogOutput):
+        output.ensure()
         match output.format, output.auto_timestamp:
             case "plain", False:
                 self.__underlying_logger.addHandler(output.handler)
