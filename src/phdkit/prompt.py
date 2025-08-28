@@ -76,7 +76,6 @@ class PromptTemplate:
         self,
         *,
         _cache_marker_action: Literal["ignore", "split", "strip"],
-        _strip_cached: bool,
         **kwargs,
     ) -> tuple[str, str] | str:
         CACHE_MARKER = "!<CACHE_MARKER>!"
