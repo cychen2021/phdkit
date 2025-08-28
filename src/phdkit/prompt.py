@@ -1,6 +1,6 @@
 import re
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 
 class PromptTemplate:
@@ -48,7 +48,7 @@ class PromptTemplate:
             A filled prompt snippet with placeholders substituted.
         """
 
-        return self._fill_out(_ignore_cache_marker=True, **kwargs) # type: ignore
+        return self._fill_out(_cache_marker_action="ignore", **kwargs) # type: ignore
 
     def fill_out_cached(self, **kwargs) -> tuple[str, str]:
         """Fill out the prompt template with placeholders substituted.
@@ -60,11 +60,22 @@ class PromptTemplate:
             A tuple containing the prefix and the non-cached part of the prompt.
         """
 
-        return self._fill_out(_ignore_cache_marker=False, **kwargs) # type: ignore
+        return self._fill_out(_cache_marker_action="split", **kwargs) # type: ignore
+
+    def fill_out_cache_stripped(self, **kwargs) -> str:
+        """Fill out the prompt template with placeholders substituted.
+
+        The prefix before the `!<CACHE_MARKER>!` marker will be discarded.
+
+        Return:
+            The filled prompt with the cache marker stripped.
+        """
+        return self._fill_out(_cache_marker_action="strip", **kwargs) # type: ignore
 
     def _fill_out(
-        self, *, _ignore_cache_marker: bool, **kwargs
+        self, *, _cache_marker_action: Literal["ignore", "split", "strip"], _strip_cached: bool, **kwargs
     ) -> tuple[str, str] | str:
+        CACHE_MARKER = "!<CACHE_MARKER>!"
         # locate repository root (assumes this file lives at <repo>/src/mc/...)
         prompts_dir = self._prompts_dir
         resources_dir = self._resources_dir
@@ -146,17 +157,20 @@ class PromptTemplate:
             return text
 
         template = getattr(self, "template", "") or ""
+        match _cache_marker_action:
+            case "strip":
+                marker_loc = template.find(CACHE_MARKER)
+                template = (
+                    template[marker_loc + len(CACHE_MARKER) :]
+                    if marker_loc != -1
+                    else template
+                )
+
         expanded = expand(template)
 
-        # New behavior: a single cache marker splits the prompt into two parts.
-        # Everything before the marker is the portion that should be cached when
-        # querying the LLM API; everything after the marker is not cached.
-        # The marker is `!<CACHE_MARKER>!`. Return a 2-tuple:
-        #   (prefix_to_cache, suffix_not_cached)
-        CACHE_MARKER = "!<CACHE_MARKER>!"
-
-        if _ignore_cache_marker:
-            return expanded.replace(CACHE_MARKER, "")
+        match _cache_marker_action:
+            case "ignore" | "strip":
+                return expanded.replace(CACHE_MARKER, "")
 
         pos = expanded.find(CACHE_MARKER)
         if pos == -1:

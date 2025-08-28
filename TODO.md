@@ -7,6 +7,7 @@
 - [ ] Add error messages if using a configuration setting before it is loaded
 - [ ] Consider how to use `configlib` for the context manager protocol
 - [x] Explore how to handle optional settings in `configlib`
+- [ ] Add `postload` functionalities for `configlib`
 - [ ] Add docs for default setting values in `configlib`
 - [ ] Implement `log.watchdog`
 - [x] Implement the `subshell` functionality of the `rich` wrapper module
