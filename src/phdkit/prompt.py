@@ -38,7 +38,7 @@ class PromptTemplate:
         self._prompts_dir = prompts_dir
         self._resources_dir = resources_dir
         self._max_depth = max_depth
-    
+
     def fill_out(self, **kwargs) -> str:
         """Fill out the prompt template with placeholders substituted.
 
@@ -48,7 +48,7 @@ class PromptTemplate:
             A filled prompt snippet with placeholders substituted.
         """
 
-        return self._fill_out(_cache_marker_action="ignore", **kwargs) # type: ignore
+        return self._fill_out(_cache_marker_action="ignore", **kwargs)  # type: ignore
 
     def fill_out_cached(self, **kwargs) -> tuple[str, str]:
         """Fill out the prompt template with placeholders substituted.
@@ -60,7 +60,7 @@ class PromptTemplate:
             A tuple containing the prefix and the non-cached part of the prompt.
         """
 
-        return self._fill_out(_cache_marker_action="split", **kwargs) # type: ignore
+        return self._fill_out(_cache_marker_action="split", **kwargs)  # type: ignore
 
     def fill_out_cache_stripped(self, **kwargs) -> str:
         """Fill out the prompt template with placeholders substituted.
@@ -70,10 +70,14 @@ class PromptTemplate:
         Return:
             The filled prompt with the cache marker stripped.
         """
-        return self._fill_out(_cache_marker_action="strip", **kwargs) # type: ignore
+        return self._fill_out(_cache_marker_action="strip", **kwargs)  # type: ignore
 
     def _fill_out(
-        self, *, _cache_marker_action: Literal["ignore", "split", "strip"], _strip_cached: bool, **kwargs
+        self,
+        *,
+        _cache_marker_action: Literal["ignore", "split", "strip"],
+        _strip_cached: bool,
+        **kwargs,
     ) -> tuple[str, str] | str:
         CACHE_MARKER = "!<CACHE_MARKER>!"
         # locate repository root (assumes this file lives at <repo>/src/mc/...)
