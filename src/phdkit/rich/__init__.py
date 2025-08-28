@@ -4,5 +4,6 @@ TODO
 """
 
 from .subshell_mod import subshell
+from .lenient_time_remaining import LenientTimeRemainingColumn
 
-__all__ = ["subshell"]
+__all__ = ["subshell", "LenientTimeRemainingColumn"]
