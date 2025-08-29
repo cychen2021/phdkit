@@ -53,7 +53,7 @@ def test_lenient_fallback_computes_estimate(monkeypatch):
     # Simulate parent returning the placeholder that indicates unreliable estimate
     monkeypatch.setattr(
         "phdkit.rich.lenient_time_remaining.TimeRemainingColumn.render",
-        lambda self, task: Text("-:--:-"),
+        lambda self, task: Text("-:--:--"),
     )
 
     # Task with 4 completed out of 10, elapsed 8 seconds -> avg 2s/step -> remaining (6 steps) = 12s

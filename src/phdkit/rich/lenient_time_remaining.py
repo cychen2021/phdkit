@@ -21,7 +21,7 @@ class LenientTimeRemainingColumn(TimeRemainingColumn):
 
         # Check whether the original method returned the placeholder "?:??:??"
         # which indicates rich considers the estimate unreliable.
-        if remaining_time.plain == "-:--:-":
+        if remaining_time.plain == "-:--:--":
             # If the task has started, has a total and is not finished
             if task.started and task.total is not None and not task.finished:
                 # Use our own "lenient" algorithm
