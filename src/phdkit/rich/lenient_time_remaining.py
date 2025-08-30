@@ -9,6 +9,8 @@ This is suitable for progress bars where showing a rough remaining time is
 preferable to showing nothing.
 """
 
+from __future__ import annotations
+
 from datetime import timedelta
 
 from rich.progress import (
@@ -26,7 +28,7 @@ class LenientTimeRemainingColumn(TimeRemainingColumn):
     completed steps to form a global-average per-step time.
     """
 
-    def render(self, task: "Task") -> Text:
+    def render(self, task: Task) -> Text:
         # Try calling the parent (original) render method. If rich considers
         # the estimate stable, it will return a Text object with the time.
         remaining_time = super().render(task)
