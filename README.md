@@ -39,11 +39,61 @@ containing = tree.query_point(4)  # Returns intervals containing point 4
 
 ### Logging and email notification
 
-TODO
+This package provides a small but flexible logging system with multiple output destinations (console, file, email) and formats (plain or JSONL). It includes an `EmailNotifier` helper for sending log messages by email.
+
+Key types and behavior:
+
+- `LogOutput` — configure an output destination. Supports console (stdout/stderr), file, and email outputs. Each output can be configured with a logging level, format (`plain` or `jsonl`), and whether timestamps are included.
+- `Logger` — a logger that can attach multiple `LogOutput` instances. It exposes `debug`, `info`, `warning`, `error`, and `critical` convenience methods and a generic `log` method. JSONL outputs serialize log records as JSON objects.
+- `EmailNotifier` — helper class (decorated with the `configurable` system) which reads SMTP configuration and can `send(header, body)` to deliver an email. It is used by `LogOutput.email(...)` to create an email-backed log output.
+
+Example:
+
+```python
+from phdkit.log import Logger, LogOutput, LogLevel
+from phdkit.log import EmailNotifier
+
+# Console output
+out = LogOutput.stdout(id="console", level=LogLevel.INFO, format="plain")
+logger = Logger("myapp", outputs=[out])
+logger.info("Startup", "Application started")
+
+# File output
+file_out = LogOutput.file("logs/myapp.log", level=LogLevel.DEBUG)
+logger.add_output(file_out)
+
+# Email notifier (requires configuration via configlib)
+notifier = EmailNotifier()
+# EmailNotifier is configurable via the configlib decorators and will pull settings from config/env
+# If configured, create an email-backed LogOutput:
+# email_out = LogOutput.email(notifier, level=LogLevel.WARNING)
+# logger.add_output(email_out)
+```
 
 ### Configuration management
 
-TODO
+The `configlib` package provides a declarative configuration loader and helpers to populate classes from TOML or environment sources.
+
+Key concepts:
+
+- `@configurable(load_config=..., load_env=...)` — class decorator that registers the class with the global configuration manager. The decorated class can then be loaded from files using `Config.load(instance, config_file, env_file)` or the shorthand `config[instance].load(config_file, env_file)`.
+- `@setting("key.path")` / `setting.getter(...)` — used to declare configurable properties on a class. The decorator creates descriptors that store defaults and expose getters/setters which are set when configuration is loaded.
+- `TomlReader` — a config reader for TOML files (used by the examples and `EmailNotifier`).
+
+Example (simplified):
+
+```python
+from phdkit.configlib import configurable, setting, TomlReader, config
+
+@configurable(load_config=TomlReader(), load_env=TomlReader())
+class AppConfig:
+    @setting("app.name", default="phdkit-sample")
+    def name(self) -> str: ...
+
+app = AppConfig()
+config[app].load("config.toml", "env.toml")
+print(app.name)
+```
 
 ### Task batching
 
@@ -53,12 +103,71 @@ TODO
 
 TODO
 
+### Terminal UI helpers (rich)
+
+This subpackage contains small utilities built on top of the `rich` library for
+interactive terminal output:
+
+- `LenientTimeRemainingColumn` — a progress-bar column that shows a lenient
+    remaining-time estimate when the default rich estimator suppresses the value.
+- `subshell` / `ScrollPanel` — a tiny helper to run subprocesses and stream
+    their stdout/stderr into a scrollable panel rendered with `rich.live.Live`.
+
+Example (lenient time column):
+
+```python
+from rich.progress import Progress
+from phdkit.rich import LenientTimeRemainingColumn
+
+with Progress(LenientTimeRemainingColumn()) as progress:
+        task = progress.add_task("work", total=100)
+        # update task.completed / task.advance in a loop
+```
+
+Example (subshell runner):
+
+```python
+from phdkit.rich import subshell
+
+run = subshell("List dir", 20)
+rc = run(["ls", "-la"])  # streams output into a live scrolling panel
+```
+
 ### Other utilities
 
 #### Infix functions
 
-TODO
+The `infix` decorator in `phdkit.infix_fn` allows you to define custom infix operators. Wrap a binary function with `@infix` and you can use the `|f|` syntax to call it. The implementation also provides helpers for left/right binding when partially applying one side of the operator.
+
+Example:
+
+```python
+from phdkit.infix_fn import infix
+
+@infix
+def add(x, y):
+    return x + y
+
+result = 1 |add| 2  # equals add(1, 2)
+```
 
 ## Development
 
-TODO
+Next steps & notes:
+
+- Add usage examples and API reference for the IntervalTree and other modules.
+- Expand `batching` to include concrete batching primitives and tests.
+- Add CI to run unit tests under `tests/` and generate coverage reports.
+- Flesh out `gplot` examples and include small demo notebooks.
+
+Requirements coverage:
+
+- Autoretry: documented (AutoRetry class) — done.
+- Infix functions: documented (infix decorator) — done.
+- Prompt template: documented (PromptTemplate API) — done.
+- Util helpers: documented (strip_indent, protect_indent, unimplemented) — done.
+- Configlib: documented (configurable, setting) — done.
+- Logging & Email: documented (Logger, LogOutput, EmailNotifier) — done.
+- Batching: mentioned as stub — done (placeholder).
+
+If you'd like, I can also add small code examples to `phdkit/tests` or expand README with longer, runnable examples.

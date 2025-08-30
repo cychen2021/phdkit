@@ -24,9 +24,9 @@ Unset = _Unset()
 """Sentinel used to express "no default provided" for a setting.
 
 When a setting is declared without a default, the library records the default as
-``Unset``. During configuration loading, if the key is missing and the setting's
-default is ``Unset``, the loader will raise a :class:`KeyError`. If a default is
-provided (anything other than ``Unset``), that value will be used instead.
+``Unset`. During configuration loading, if the key is missing and the setting's
+default is `Unset`, the loader will raise a :class:`KeyError`. If a default is
+provided (anything other than `Unset`), that value will be used instead.
 """
 
 
@@ -335,10 +335,10 @@ class Setting[I, V]:
     """Represents a configurable attribute.
 
     The setting object holds a getter and setter used to read and write an
-    attribute on an instance, and an optional ``default`` value which will be
+    attribute on an instance, and an optional `default` value which will be
     applied at configuration load time when the corresponding key is missing.
 
-    If ``default`` is the ``Unset`` sentinel the setting is treated as required
+    If `default` is the `Unset` sentinel the setting is treated as required
     and the loader will raise a :class:`KeyError` when the key is absent.
     """
 
@@ -501,12 +501,12 @@ class __setting:
         Parameters
         - config_key: dotted key in the config dict to load for this setting.
         - default: optional default used when the key is absent. If not provided
-          (the sentinel ``Unset``), the loader treats the setting as required and
-          will raise ``KeyError`` when loading if the key is missing.
+          (the sentinel `Unset`), the loader treats the setting as required and
+          will raise `KeyError` when loading if the key is missing.
 
         Returns
         - A decorator that transforms a method into a descriptor exposing the
-          setting's getter and setter and registers it with the global ``Config``.
+          setting's getter and setter and registers it with the global `Config`.
         """
 
         class __decorator[I, V]:

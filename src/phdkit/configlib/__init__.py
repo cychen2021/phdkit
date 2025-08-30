@@ -25,9 +25,9 @@ if __name__ == "__main__":
     config[app].load("config.toml", "env.toml")
 ```
 
-Use the ``default`` kwarg on ``setting(...)`` / ``setting.getter(...)`` to
-provide a fallback when the config key is absent. If omitted (the ``Unset``
-sentinel) the loader treats the setting as required and raises ``KeyError`` at
+Use the `default` kwarg on `setting(...)` / `setting.getter(...)` to
+provide a fallback when the config key is absent. If omitted (the `Unset``
+sentinel) the loader treats the setting as required and raises `KeyError` at
 load time. Defaults are stored verbatim and applied during loading.
 
 Attributes:
