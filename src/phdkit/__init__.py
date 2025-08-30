@@ -5,7 +5,7 @@ from .infix_fn import infix
 __all__ = [
     "batching",
     "configlib",
-    "gplog",
+    "gplot",
     "log",
     "mapreduce",
     "rich",
