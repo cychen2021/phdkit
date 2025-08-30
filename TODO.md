@@ -8,7 +8,7 @@
 - [ ] Consider how to use `configlib` for the context manager protocol
 - [x] Explore how to handle optional settings in `configlib`
 - [ ] Add `postload` functionalities for `configlib`
-- [ ] Add docs for default setting values in `configlib`
+- [x] Add docs for default setting values in `configlib`
 - [ ] Implement `log.watchdog`
 - [x] Implement the `subshell` functionality of the `rich` wrapper module
 - ~~[ ] Implement the `dyntqdm` functionality of the `rich` wrapper module~~ Already support by `rich`

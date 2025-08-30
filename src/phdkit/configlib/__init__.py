@@ -25,13 +25,18 @@ if __name__ == "__main__":
     config[app].load("config.toml", "env.toml")
 ```
 
+Use the ``default`` kwarg on ``setting(...)`` / ``setting.getter(...)`` to
+provide a fallback when the config key is absent. If omitted (the ``Unset``
+sentinel) the loader treats the setting as required and raises ``KeyError`` at
+load time. Defaults are stored verbatim and applied during loading.
+
 Attributes:
     Config: The singleton that manages configurations.
     config: An alias for Config.
     setting: A decorator to mark a method as a setting.
-"""
 
 # TODO: Add docs for `configurable_fn` and `setting_fn`
+"""
 
 from .configurable import setting, configurable, Config, config
 from .configurable_fn import configurable_fn, setting_fn
