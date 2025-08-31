@@ -3,7 +3,7 @@ from pathlib import Path
 
 PROJECT_SOURCE = Path(__file__).parent.resolve()
 
-class CustomHook(MetadataHookInterface):
+class RedactHook(MetadataHookInterface):
     def update(self, metadata):
         with open(PROJECT_SOURCE / "README.md", "r", encoding="utf-8") as f:
             content = f.read()

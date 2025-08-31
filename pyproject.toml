@@ -36,3 +36,6 @@ build-backend = "hatchling.build"
 dev = [
     "pytest>=8.4.1",
 ]
+
+[tool.hatch.metadata.hooks.custom]
+path = "hatch_hooks.py"
