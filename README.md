@@ -2,7 +2,6 @@
 
 [![CI](https://github.com/cychen2021/phdkit/actions/workflows/ci.yml/badge.svg)](https://github.com/cychen2021/phdkit/actions/workflows/ci.yml) [![PyPI Version](https://img.shields.io/pypi/v/phdkit?label=PyPI)](https://pypi.org/project/phdkit/)
 
-
 ## Overview
 
 phdkit is a small utility library that bundles helpful tooling for research scripting and automation aimed at PhD students and researchers. It provides compact, well-tested primitives for common tasks encountered in data processing and workflow scripts: a high-performance IntervalTree for managing time or range-based data, a flexible logging system with optional email notifications, a declarative configuration loader that reads TOML/env sources, lightweight batching utilities, and small terminal UI helpers built on top of rich. The package emphasizes simplicity, clear APIs, and ease-of-use in scripts and notebooks so you can focus on research logic rather than tooling.
