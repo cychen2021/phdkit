@@ -12,13 +12,17 @@ Example:
 
 from __future__ import annotations
 
-from typing import Callable, Iterable, List, Optional
+from typing import List, Protocol
 
 from rich.text import Text
 from rich.panel import Panel
 from rich.live import Live
 import subprocess
 import time
+
+
+class SubshellRunner(Protocol):
+    def __call__(self, cmd: list[str], *, check: bool = False, **kwargs) -> int: ...
 
 
 class ScrollPanel:
@@ -62,7 +66,7 @@ class ScrollPanel:
             self.__lines.pop(0)
 
 
-def subshell(title: str, line_num: int) -> Callable[[Iterable[str]], int]:
+def subshell(title: str, line_num: int) -> SubshellRunner:
     """Factory that returns a function to run a subprocess and stream its
     output into a scrolling panel.
 
@@ -81,12 +85,12 @@ def subshell(title: str, line_num: int) -> Callable[[Iterable[str]], int]:
 
     panel = ScrollPanel(title, line_num)
 
-    def __run(config_cmd, *, check: bool = False, **kwargs) -> int:
+    def __run(cmd: list[str], *, check: bool = False, **kwargs) -> int:
         """Run the given command and stream its stdout/stderr into a Live
         Rich Panel.
 
         Args:
-            config_cmd: The command to execute (list/tuple or string) that is
+            cmd: The command to execute (list/tuple or string) that is
                 accepted by subprocess.Popen.
             check: If True, raise subprocess.CalledProcessError on non-zero
                 exit codes.
@@ -101,7 +105,7 @@ def subshell(title: str, line_num: int) -> Callable[[Iterable[str]], int]:
                 vertical_overflow="visible", get_renderable=panel, auto_refresh=False
             ) as live,
             subprocess.Popen(
-                config_cmd,
+                cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
@@ -121,7 +125,7 @@ def subshell(title: str, line_num: int) -> Callable[[Iterable[str]], int]:
                 # read() after iteration will be empty, but include for API
                 raise subprocess.CalledProcessError(
                     return_code,
-                    config_cmd,
+                    cmd,
                     output=p.stdout.read(),
                 )
             return return_code
