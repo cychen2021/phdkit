@@ -16,9 +16,9 @@ A high-performance Red-Black tree based interval tree implementation for efficie
 
 **Key Features:**
 
-- O(log n) insertion and deletion
-- O(log n + k) overlap queries (where k is the number of results)
-- Half-open interval semantics [start, end)
+- $O(log n)$ insertion and deletion
+- $O(log n + k)$ overlap queries (where $k$ is the number of results)
+- Half-open interval semantics `[start, end)`
 - Support for point queries and range queries
 - Generic data payload support
 
