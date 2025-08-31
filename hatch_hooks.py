@@ -1,11 +1,11 @@
 from hatchling.metadata.plugin.interface import MetadataHookInterface # type: ignore
+from pathlib import Path
+
+PROJECT_SOURCE = Path(__file__).parent.resolve()
 
 class CustomHook(MetadataHookInterface):
     def update(self, metadata):
-        """
-        在构建时被调用，用于更新元数据。
-        """
-        with open("README.md", "r", encoding="utf-8") as f:
+        with open(PROJECT_SOURCE / "README.md", "r", encoding="utf-8") as f:
             content = f.read()
 
         lines = content.splitlines()
