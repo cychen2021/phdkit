@@ -9,7 +9,7 @@ class RedactHook(MetadataHookInterface):
             content = f.read()
 
         lines = content.splitlines()
-        content_without_badges = "\n".join(lines[:2] + lines[3:])
+        content_without_badges = "\n".join(lines[:1] + lines[3:])
 
         metadata["readme"] = {
             "content-type": "text/markdown",
