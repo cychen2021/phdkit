@@ -1,7 +1,5 @@
 """Tests for the configlib module, including postload functionality."""
 
-import tempfile
-import os
 import pytest
 from phdkit.configlib.configurable import configurable, setting, Config, config
 from phdkit.configlib.tomlreader import TomlReader
