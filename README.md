@@ -152,3 +152,36 @@ def add(x, y):
 
 result = 1 |add| 2  # equals add(1, 2)
 ```
+
+#### Prompting
+
+The `prompt` subpackage provides a lightweight prompt template processor for handling dynamic text generation with includes and variable substitution.
+
+**Key Features:**
+
+- `?<include:NAME>?` — substitute contents of `<resources>/NAME` (if present)
+- `!<include:NAME>!` — substitute contents of `<prompts>/NAME` and recursively expand it
+- `?<VAR.FIELD>?` — lookup `VAR.FIELD` in the provided arguments (dot-separated)
+- Cache markers `!<CACHE_MARKER>!` for splitting prompts into cached and non-cached parts
+
+**Example Usage:**
+
+```python
+from phdkit.prompt import PromptTemplate
+
+# Simple variable substitution
+template = PromptTemplate("Hello ?<name>?!")
+result = template.fill_out(name="World")
+print(result)  # Hello World!
+
+# With includes and cache splitting
+template = PromptTemplate("!<CACHE_MARKER>! System prompt here. User: ?<user_input>?")
+cached, rest = template.fill_out_cached(user_input="How are you?")
+print(f"Cached: {cached}")  # Cached: System prompt here.
+print(f"Rest: {rest}")      # Rest: User: How are you?
+```
+
+#### Miscellaneous
+
+- `strip_indent` and `protect_indent`: Utility functions for handling indented text, particularly useful for preserving formatting in docstrings or templates. `strip_indent` removes leading whitespace from each line while respecting special markers like `|` for preserving indentation levels, and `protect_indent` adds protection to pipe-prefixed lines by doubling the pipe character to prevent unintended stripping.
+- `unimplemented` and `todo`: Helper functions for marking incomplete code during development. `unimplemented` raises an `UnimplementedError` with an optional message, and `todo` is an alias for it, useful for placeholders in development code.
