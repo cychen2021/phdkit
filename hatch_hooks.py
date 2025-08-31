@@ -1,4 +1,4 @@
-from hatchling.metadata.plugin.interface import MetadataHookInterface
+from hatchling.metadata.plugin.interface import MetadataHookInterface # type: ignore
 
 class CustomHook(MetadataHookInterface):
     def update(self, metadata):
