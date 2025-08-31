@@ -185,3 +185,7 @@ print(f"Rest: {rest}")      # Rest: User: How are you?
 
 - `strip_indent` and `protect_indent`: Utility functions for handling indented text, particularly useful for preserving formatting in docstrings or templates. `strip_indent` removes leading whitespace from each line while respecting special markers like `|` for preserving indentation levels, and `protect_indent` adds protection to pipe-prefixed lines by doubling the pipe character to prevent unintended stripping.
 - `unimplemented` and `todo`: Helper functions for marking incomplete code during development. `unimplemented` raises an `UnimplementedError` with an optional message, and `todo` is an alias for it, useful for placeholders in development code.
+
+## Statement of Vibe Coding
+
+This project pervasively uses vibe-coding, but with careful human audit.
