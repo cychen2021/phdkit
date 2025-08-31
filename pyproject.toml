@@ -1,6 +1,6 @@
 [project]
 name = "phdkit"
-version = "0.1.0"
+version = "0.1.1"
 description = "Scripting utilities for PhD students, including logging with email notification, task batching, plotting, and more."
 # readme = "README.md"
 dynamic = ["readme"]
