@@ -150,24 +150,3 @@ def add(x, y):
 
 result = 1 |add| 2  # equals add(1, 2)
 ```
-
-## Development
-
-Next steps & notes:
-
-- Add usage examples and API reference for the IntervalTree and other modules.
-- Expand `batching` to include concrete batching primitives and tests.
-- Add CI to run unit tests under `tests/` and generate coverage reports.
-- Flesh out `gplot` examples and include small demo notebooks.
-
-Requirements coverage:
-
-- Autoretry: documented (AutoRetry class) — done.
-- Infix functions: documented (infix decorator) — done.
-- Prompt template: documented (PromptTemplate API) — done.
-- Util helpers: documented (strip_indent, protect_indent, unimplemented) — done.
-- Configlib: documented (configurable, setting) — done.
-- Logging & Email: documented (Logger, LogOutput, EmailNotifier) — done.
-- Batching: mentioned as stub — done (placeholder).
-
-If you'd like, I can also add small code examples to `phdkit/tests` or expand README with longer, runnable examples.
