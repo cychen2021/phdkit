@@ -10,7 +10,7 @@ def test_prompt_include_and_cache_split(tmp_path):
 
     pt = PromptTemplate(template="!<include:base.md>!", prompts_dir=prompts)
 
-    cached, non_cached = pt.fill_out_cached(value="XYZ")
+    cached, non_cached = pt.fill_out_split_cache(value="XYZ")
 
     # Expect prefix (cached) to be everything before marker, and suffix to be after
     assert cached == ""
@@ -28,7 +28,7 @@ def test_variable_substitution_and_resource_include(tmp_path):
     tpl_text = "?<include:greeting.txt>?"
     tpl = PromptTemplate(template=tpl_text, resources_dir=resources)
 
-    cached, non_cached = tpl.fill_out_cached(name="World")
+    cached, non_cached = tpl.fill_out_split_cache(name="World")
     assert cached == ""
     assert non_cached == "Hello, World!!!"
 
@@ -43,7 +43,7 @@ def test_prompt_include_recursive_and_cache_markers(tmp_path):
     tpl = PromptTemplate(template="!<include:outer.md>!", prompts_dir=prompts)
 
     # outer includes inner; after expansion we expect a tuple (cached_prefix, non_cached_suffix)
-    cached, non_cached = tpl.fill_out_cached()
+    cached, non_cached = tpl.fill_out_split_cache()
     # The cached prefix should contain everything up to the marker included in inner
     assert isinstance(cached, str)
     assert isinstance(non_cached, str)
@@ -62,7 +62,7 @@ def test_missing_files_and_vars_return_empty(tmp_path):
         prompts_dir=prompts,
         resources_dir=resources,
     )
-    cached, non_cached = tpl.fill_out_cached()
+    cached, non_cached = tpl.fill_out_split_cache()
     assert cached == ""
     assert "Before   After" in non_cached
 
@@ -76,7 +76,7 @@ def test_circular_includes_respected_max_depth(tmp_path):
 
     tpl = PromptTemplate(template="!<include:a.md>!", prompts_dir=prompts, max_depth=3)
     # Should not infinite loop; returns a tuple of strings (may be truncated by depth)
-    cached, non_cached = tpl.fill_out_cached()
+    cached, non_cached = tpl.fill_out_split_cache()
     assert isinstance(cached, str) and isinstance(non_cached, str)
 
 
@@ -86,14 +86,14 @@ def test_lookup_nested_and_attribute_like(tmp_path):
             self.value = x
 
     tpl = PromptTemplate(template="Val: ?<data.value>? and Obj: ?<obj.value>?")
-    cached, non_cached = tpl.fill_out_cached(data={"value": "D"}, obj=Obj("O"))
+    cached, non_cached = tpl.fill_out_split_cache(data={"value": "D"}, obj=Obj("O"))
     assert cached == ""
     assert non_cached == "Val: D and Obj: O"
 
 
 def test_fill_out_returns_correct_cached_prefix(tmp_path):
     tpl = PromptTemplate(template="Before !<CACHE_MARKER>!After")
-    cached, non_cached = tpl.fill_out_cached()
+    cached, non_cached = tpl.fill_out_split_cache()
     # If marker present, cached is the prefix before it ("Before ") and non_cached is the rest
     assert cached == "Before "
     assert non_cached == "After"
@@ -108,13 +108,13 @@ def test_ignore_cache_marker_returns_single_string(tmp_path):
 
     pt = PromptTemplate(template="!<include:base.md>!", prompts_dir=prompts)
 
-    out = pt.fill_out(_ignore_cache_marker=True)
+    out = pt.fill_out_ignore_cache4(_ignore_cache_marker=True)
 
     # When ignoring cache marker we expect a single string with the marker removed
     assert isinstance(out, str)
     assert "!<CACHE_MARKER>!" not in out
     assert "CachedHeader" in out
-    assert "Body: XYZ" in pt.fill_out(value="XYZ")
+    assert "Body: XYZ" in pt.fill_out_ignore_cache4(value="XYZ")
 
 
 def test_ignore_cache_marker_recursive_include(tmp_path):
@@ -124,7 +124,7 @@ def test_ignore_cache_marker_recursive_include(tmp_path):
     (prompts / "outer.md").write_text("Start\n!<include:inner.md>!\nEnd")
 
     tpl = PromptTemplate(template="!<include:outer.md>!", prompts_dir=prompts)
-    out = tpl.fill_out()
+    out = tpl.fill_out_ignore_cache4()
 
     assert isinstance(out, str)
     assert "!<CACHE_MARKER>!" not in out

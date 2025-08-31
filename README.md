@@ -171,12 +171,12 @@ from phdkit.prompt import PromptTemplate
 
 # Simple variable substitution
 template = PromptTemplate("Hello ?<name>?!")
-result = template.fill_out(name="World")
+result = template.fill_out_ignore_cache(name="World")
 print(result)  # Hello World!
 
 # With includes and cache splitting
 template = PromptTemplate("!<CACHE_MARKER>! System prompt here. User: ?<user_input>?")
-cached, rest = template.fill_out_cached(user_input="How are you?")
+cached, rest = template.fill_out_split_cache(user_input="How are you?")
 print(f"Cached: {cached}")  # Cached: System prompt here.
 print(f"Rest: {rest}")      # Rest: User: How are you?
 ```

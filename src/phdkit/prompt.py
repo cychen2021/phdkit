@@ -39,7 +39,7 @@ class PromptTemplate:
         self._resources_dir = resources_dir
         self._max_depth = max_depth
 
-    def fill_out(self, **kwargs) -> str:
+    def fill_out_ignore_cache4(self, **kwargs) -> str:
         """Fill out the prompt template with placeholders substituted.
 
         The `!<CACHE_MARKER>!` marker will be ignored and eliminated.
@@ -50,7 +50,7 @@ class PromptTemplate:
 
         return self._fill_out(_cache_marker_action="ignore", **kwargs)  # type: ignore
 
-    def fill_out_cached(self, **kwargs) -> tuple[str, str]:
+    def fill_out_split_cache(self, **kwargs) -> tuple[str, str]:
         """Fill out the prompt template with placeholders substituted.
 
         The prompt will be splitted at the `!<CACHE_MARKER>!` marker to
@@ -62,7 +62,7 @@ class PromptTemplate:
 
         return self._fill_out(_cache_marker_action="split", **kwargs)  # type: ignore
 
-    def fill_out_cache_stripped(self, **kwargs) -> str:
+    def fill_out_strip_cache(self, **kwargs) -> str:
         """Fill out the prompt template with placeholders substituted.
 
         The prefix before the `!<CACHE_MARKER>!` marker will be discarded.
