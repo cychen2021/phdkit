@@ -5,13 +5,13 @@
 - [ ] Simplify the usage pattern of `load_config` and `load_env`
 - [x] Consider how to handle configurations of base classes in `configlib`
 - [ ] Add error messages if using a configuration setting before it is loaded
-- [ ] ~~Consider how to use `configlib` for the context manager protocol~~
+- [x] ~~Consider how to use `configlib` for the context manager protocol~~
 - [x] Explore how to handle optional settings in `configlib`
 - [x] Add `postload` functionalities for `configlib`
 - [x] Add docs for default setting values in `configlib`
 - [ ] Implement `log.watchdog`
 - [x] Implement the `subshell` functionality of the `rich` wrapper module
-- ~~[ ] Implement the `dyntqdm` functionality of the `rich` wrapper module~~ Already support by `rich`
+- [x] ~~Implement the `dyntqdm` functionality of the `rich` wrapper module~~ Already support by `rich`
 - [x] Make `infix_fn` type-safe
 - [ ] Audit this whole "vibe-coding" interval tree implementation for correctness and performance
 - [ ] Develop a standard operating procedure for redaction the identity information for anonymous artifact submission in paper reviewing
