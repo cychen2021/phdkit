@@ -4,6 +4,7 @@ import tempfile
 import os
 import pytest
 from phdkit.configlib.configurable import configurable, setting, Config, config
+from phdkit.configlib.tomlreader import TomlReader
 
 
 class TestPostloadFunctionality:
@@ -175,3 +176,352 @@ class TestPostloadFunctionality:
         # Should call the updated postload
         assert hasattr(instance, 'postload_called'), "Postload should have been called"
         assert getattr(instance, 'postload_called') == "updated", "Updated postload should be called"
+
+
+class TestArrayHandling:
+    """Test that configlib handles arrays in TOML correctly."""
+
+    def test_array_setting_with_list_values(self):
+        """Test loading an array setting with list values from TOML."""
+        import tempfile
+        import os
+
+        # Create a temporary TOML file with array data
+        toml_content = """
+        [config]
+        items = ["apple", "banana", "cherry"]
+        numbers = [1, 2, 3, 4, 5]
+        mixed = ["string", 42, true, 3.14]
+        """
+
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.toml', delete=False) as f:
+            f.write(toml_content)
+            temp_file = f.name
+
+        try:
+            @configurable(load_config=TomlReader(temp_file))
+            class TestClass:
+                @setting('config.items')
+                def items(self):
+                    pass
+
+                @setting('config.numbers')
+                def numbers(self):
+                    pass
+
+                @setting('config.mixed')
+                def mixed(self):
+                    pass
+
+            instance = TestClass()
+            config[instance].load()
+
+            # Verify arrays are loaded correctly
+            assert instance.items == ["apple", "banana", "cherry"]
+            assert instance.numbers == [1, 2, 3, 4, 5]
+            assert instance.mixed == ["string", 42, True, 3.14]
+
+        finally:
+            os.unlink(temp_file)
+
+    def test_nested_array_setting(self):
+        """Test loading nested arrays from TOML."""
+        import tempfile
+        import os
+
+        # Create a temporary TOML file with nested array data
+        toml_content = """
+        [config]
+        matrix = [[1, 2], [3, 4], [5, 6]]
+        nested = [["a", "b"], ["c", "d"]]
+        """
+
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.toml', delete=False) as f:
+            f.write(toml_content)
+            temp_file = f.name
+
+        try:
+            @configurable(load_config=TomlReader(temp_file))
+            class TestClass:
+                @setting('config.matrix')
+                def matrix(self):
+                    pass
+
+                @setting('config.nested')
+                def nested(self):
+                    pass
+
+            instance = TestClass()
+            config[instance].load()
+
+            # Verify nested arrays are loaded correctly
+            assert instance.matrix == [[1, 2], [3, 4], [5, 6]]
+            assert instance.nested == [["a", "b"], ["c", "d"]]
+
+        finally:
+            os.unlink(temp_file)
+
+    def test_empty_array_setting(self):
+        """Test loading an empty array from TOML."""
+        import tempfile
+        import os
+
+        # Create a temporary TOML file with empty array
+        toml_content = """
+        [config]
+        empty_list = []
+        """
+
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.toml', delete=False) as f:
+            f.write(toml_content)
+            temp_file = f.name
+
+        try:
+            @configurable(load_config=TomlReader(temp_file))
+            class TestClass:
+                @setting('config.empty_list')
+                def empty_list(self):
+                    pass
+
+            instance = TestClass()
+            config[instance].load()
+
+            # Verify empty array is loaded correctly
+            assert instance.empty_list == []
+
+        finally:
+            os.unlink(temp_file)
+
+    def test_array_with_default_values(self):
+        """Test array settings with default values when key is missing."""
+        import tempfile
+        import os
+
+        # Create a temporary TOML file without the array key
+        toml_content = """
+        [config]
+        other_setting = "value"
+        """
+
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.toml', delete=False) as f:
+            f.write(toml_content)
+            temp_file = f.name
+
+        try:
+            @configurable(load_config=TomlReader(temp_file))
+            class TestClass:
+                @setting('config.missing_array', default=[1, 2, 3])
+                def missing_array(self):
+                    pass
+
+                @setting('config.other_setting')
+                def other_setting(self):
+                    pass
+
+            instance = TestClass()
+            config[instance].load()
+
+            # Verify default array is used when key is missing
+            assert instance.missing_array == [1, 2, 3]
+            assert instance.other_setting == "value"
+
+        finally:
+            os.unlink(temp_file)
+
+    def test_array_setting_type_preservation(self):
+        """Test that array element types are preserved from TOML."""
+        import tempfile
+        import os
+
+        # Create a temporary TOML file with different types in array
+        toml_content = """
+        [config]
+        strings = ["hello", "world"]
+        integers = [10, 20, 30]
+        floats = [1.1, 2.2, 3.3]
+        booleans = [true, false, true]
+        """
+
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.toml', delete=False) as f:
+            f.write(toml_content)
+            temp_file = f.name
+
+        try:
+            @configurable(load_config=TomlReader(temp_file))
+            class TestClass:
+                @setting('config.strings')
+                def strings(self):
+                    pass
+
+                @setting('config.integers')
+                def integers(self):
+                    pass
+
+                @setting('config.floats')
+                def floats(self):
+                    pass
+
+                @setting('config.booleans')
+                def booleans(self):
+                    pass
+
+            instance = TestClass()
+            config[instance].load()
+
+            # Verify types are preserved
+            assert instance.strings == ["hello", "world"]
+            assert all(isinstance(s, str) for s in instance.strings)  # type: ignore
+
+            assert instance.integers == [10, 20, 30]
+            assert all(isinstance(i, int) for i in instance.integers)  # type: ignore
+
+            assert instance.floats == [1.1, 2.2, 3.3]
+            assert all(isinstance(f, float) for f in instance.floats)  # type: ignore
+
+            assert instance.booleans == [True, False, True]
+            assert all(isinstance(b, bool) for b in instance.booleans)  # type: ignore
+
+        finally:
+            os.unlink(temp_file)
+
+    def test_array_of_tables_setting(self):
+        """Test loading an array of tables from TOML using [[array_name]] syntax."""
+        import tempfile
+        import os
+
+        # Create a temporary TOML file with array of tables
+        toml_content = """
+        [[items]]
+        name = "apple"
+        value = 1
+
+        [[items]]
+        name = "banana"
+        value = 2
+
+        [[items]]
+        name = "cherry"
+        value = 3
+        """
+
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.toml', delete=False) as f:
+            f.write(toml_content)
+            temp_file = f.name
+
+        try:
+            @configurable(load_config=TomlReader(temp_file))
+            class TestClass:
+                @setting('items')
+                def items(self):
+                    pass
+
+            instance = TestClass()
+            config[instance].load()
+
+            # Verify array of tables is loaded correctly
+            expected = [
+                {"name": "apple", "value": 1},
+                {"name": "banana", "value": 2},
+                {"name": "cherry", "value": 3}
+            ]
+            assert instance.items == expected
+
+        finally:
+            os.unlink(temp_file)
+
+    def test_nested_array_of_tables_setting(self):
+        """Test loading nested arrays of tables from TOML."""
+        import tempfile
+        import os
+
+        # Create a temporary TOML file with nested array of tables
+        toml_content = """
+        [[servers]]
+        name = "web"
+        
+        [[servers.hosts]]
+        ip = "192.168.1.1"
+        port = 80
+        
+        [[servers.hosts]]
+        ip = "192.168.1.2"
+        port = 443
+
+        [[servers]]
+        name = "db"
+        
+        [[servers.hosts]]
+        ip = "192.168.2.1"
+        port = 5432
+        """
+
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.toml', delete=False) as f:
+            f.write(toml_content)
+            temp_file = f.name
+
+        try:
+            @configurable(load_config=TomlReader(temp_file))
+            class TestClass:
+                @setting('servers')
+                def servers(self):
+                    pass
+
+            instance = TestClass()
+            config[instance].load()
+
+            # Verify nested array of tables is loaded correctly
+            expected = [
+                {
+                    "name": "web",
+                    "hosts": [
+                        {"ip": "192.168.1.1", "port": 80},
+                        {"ip": "192.168.1.2", "port": 443}
+                    ]
+                },
+                {
+                    "name": "db",
+                    "hosts": [
+                        {"ip": "192.168.2.1", "port": 5432}
+                    ]
+                }
+            ]
+            assert instance.servers == expected
+
+        finally:
+            os.unlink(temp_file)
+
+    def test_empty_array_of_tables_setting(self):
+        """Test loading an empty array of tables from TOML."""
+        import tempfile
+        import os
+
+        # Create a temporary TOML file with no array of tables (empty)
+        toml_content = """
+        [config]
+        other_setting = "value"
+        """
+
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.toml', delete=False) as f:
+            f.write(toml_content)
+            temp_file = f.name
+
+        try:
+            @configurable(load_config=TomlReader(temp_file))
+            class TestClass:
+                @setting('items', default=[])
+                def items(self):
+                    pass
+
+                @setting('config.other_setting')
+                def other_setting(self):
+                    pass
+
+            instance = TestClass()
+            config[instance].load()
+
+            # Verify empty array of tables defaults to empty list
+            assert instance.items == []
+            assert instance.other_setting == "value"
+
+        finally:
+            os.unlink(temp_file)

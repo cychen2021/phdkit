@@ -17,5 +17,5 @@
 - [ ] Develop a standard operating procedure for redaction the identity information for anonymous artifact submission in paper reviewing
 - [ ] Refine the ergonomics of `prompt`
 - [ ] Add format specifiers to `prompt`
-- [ ] Test whether `configlib` handles arrays in TOML correctly
+- [x] Test whether `configlib` handles arrays in TOML correctly
 - [ ] Add a py-tree-sitter wrapper module
