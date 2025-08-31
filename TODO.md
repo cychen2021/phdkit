@@ -19,3 +19,4 @@
 - [ ] Add format specifiers to `prompt`
 - [x] Test whether `configlib` handles arrays in TOML correctly
 - [ ] Add a `py-tree-sitter` wrapper module
+- [ ] Maybe the `alg` module should be implemented in Zig?

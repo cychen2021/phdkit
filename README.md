@@ -1,6 +1,7 @@
 # phdkit - Scripting Utilities for PhD Students
 
-[![CI](https://github.com/cychen2021/phdkit/actions/workflows/ci.yml/badge.svg)](https://github.com/cychen2021/phdkit/actions/workflows/ci.yml)
+[![CI](https://github.com/cychen2021/phdkit/actions/workflows/ci.yml/badge.svg)](https://github.com/cychen2021/phdkit/actions/workflows/ci.yml) [![PyPI Version](https://img.shields.io/pypi/v/phdkit)](https://pypi.org/project/phdkit/)
+
 
 ## Overview
 
