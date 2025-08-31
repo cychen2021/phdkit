@@ -2,7 +2,8 @@
 name = "phdkit"
 version = "0.1.0"
 description = "Scripting utilities for PhD students, including logging with email notification, task batching, plotting, and more."
-readme = "README.md"
+# readme = "README.md"
+dynamic = ["readme"]
 requires-python = ">=3.12"
 dependencies = [
     "click>=8.1.8",
