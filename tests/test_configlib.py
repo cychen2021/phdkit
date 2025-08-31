@@ -23,15 +23,17 @@ class TestPostloadFunctionality:
 
         # Define a configurable class with postload
         @configurable(
-            load_config=lambda config_file: {'name': 'test', 'value': 42} if config_file else {},
-            postload=my_postload
+            load_config=lambda config_file: {"name": "test", "value": 42}
+            if config_file
+            else {},
+            postload=my_postload,
         )
         class TestClass:
-            @setting('name')
+            @setting("name")
             def name(self):
                 pass
 
-            @setting('value')
+            @setting("value")
             def value(self):
                 pass
 
@@ -41,7 +43,9 @@ class TestPostloadFunctionality:
 
         # Verify postload was called
         assert postload_called, "Postload function should have been called"
-        assert postload_instance is instance, "Postload should receive the correct instance"
+        assert postload_instance is instance, (
+            "Postload should receive the correct instance"
+        )
 
         # Verify config was loaded
         assert instance.name == "test"
@@ -49,38 +53,47 @@ class TestPostloadFunctionality:
 
     def test_postload_registered_as_member_function(self):
         """Test that postload function is registered as a member function of the class."""
+
         def my_postload(instance):
             pass
 
-        @configurable(
-            load_config=lambda config_file: {},
-            postload=my_postload
-        )
+        @configurable(load_config=lambda config_file: {}, postload=my_postload)
         class TestClass:
             pass
 
         # Check that the class has the postload method
-        assert hasattr(TestClass, 'postload'), "Class should have postload as a member function"
-        assert getattr(TestClass, 'postload') is my_postload, "Postload should be the registered function"
+        assert hasattr(TestClass, "postload"), (
+            "Class should have postload as a member function"
+        )
+        assert getattr(TestClass, "postload") is my_postload, (
+            "Postload should be the registered function"
+        )
 
         # Create instance and check it has the method
         instance = TestClass()
-        assert hasattr(instance, 'postload'), "Instance should have postload method"
-        assert callable(getattr(instance, 'postload')), "Instance postload should be callable"
+        assert hasattr(instance, "postload"), "Instance should have postload method"
+        assert callable(getattr(instance, "postload")), (
+            "Instance postload should be callable"
+        )
 
     def test_postload_without_function(self):
         """Test that configurable works without postload function."""
+
         @configurable(
-            load_config=lambda config_file: {'name': 'test'} if config_file else {},
+            load_config=lambda config_file: {"name": "test"} if config_file else {},
         )
         class TestClass:
-            name = setting('name')
+            name = setting("name")
 
         # Should not have postload method
-        assert not hasattr(TestClass, 'postload'), "Class should not have postload when not provided"
+        assert not hasattr(TestClass, "postload"), (
+            "Class should not have postload when not provided"
+        )
 
         instance = TestClass()
-        assert not hasattr(instance, 'postload'), "Instance should not have postload when not provided"
+        assert not hasattr(instance, "postload"), (
+            "Instance should not have postload when not provided"
+        )
 
     def test_postload_with_inheritance(self):
         """Test postload functionality with class inheritance."""
@@ -96,24 +109,36 @@ class TestPostloadFunctionality:
             child_postload_called = True
 
         @configurable(
-            load_config=lambda config_file: {'name': 'parent', 'value': 100, 'child_value': 200} if config_file else {},
-            postload=parent_postload
+            load_config=lambda config_file: {
+                "name": "parent",
+                "value": 100,
+                "child_value": 200,
+            }
+            if config_file
+            else {},
+            postload=parent_postload,
         )
         class ParentClass:
-            @setting('name')
+            @setting("name")
             def name(self):
                 pass
 
         @configurable(
-            load_config=lambda config_file: {'name': 'parent', 'value': 100, 'child_value': 200} if config_file else {},
-            postload=child_postload
+            load_config=lambda config_file: {
+                "name": "parent",
+                "value": 100,
+                "child_value": 200,
+            }
+            if config_file
+            else {},
+            postload=child_postload,
         )
         class ChildClass(ParentClass):
-            @setting('value')
+            @setting("value")
             def value(self):
                 pass
 
-            @setting('child_value')
+            @setting("child_value")
             def child_value(self):
                 pass
 
@@ -123,7 +148,9 @@ class TestPostloadFunctionality:
 
         # Child postload should be called (most specific)
         assert child_postload_called, "Child postload should be called"
-        assert not parent_postload_called, "Parent postload should not be called for child instance"
+        assert not parent_postload_called, (
+            "Parent postload should not be called for child instance"
+        )
 
         # Verify config loading
         assert child_instance.name == "parent"
@@ -132,15 +159,16 @@ class TestPostloadFunctionality:
 
     def test_postload_exception_handling(self):
         """Test that exceptions in postload are not caught by the config loader."""
+
         def failing_postload(instance):
             raise ValueError("Postload failed")
 
         @configurable(
-            load_config=lambda config_file: {'name': 'test'} if config_file else {},
-            postload=failing_postload
+            load_config=lambda config_file: {"name": "test"} if config_file else {},
+            postload=failing_postload,
         )
         class TestClass:
-            @setting('name')
+            @setting("name")
             def name(self):
                 pass
 
@@ -152,6 +180,7 @@ class TestPostloadFunctionality:
 
     def test_postload_with_config_update(self):
         """Test updating postload function via config update."""
+
         def original_postload(instance):
             instance.postload_called = "original"
 
@@ -159,11 +188,11 @@ class TestPostloadFunctionality:
             instance.postload_called = "updated"
 
         @configurable(
-            load_config=lambda config_file: {'name': 'test'} if config_file else {},
-            postload=original_postload
+            load_config=lambda config_file: {"name": "test"} if config_file else {},
+            postload=original_postload,
         )
         class TestClass:
-            @setting('name')
+            @setting("name")
             def name(self):
                 pass
 
@@ -174,8 +203,10 @@ class TestPostloadFunctionality:
         config[instance].load("dummy")
 
         # Should call the updated postload
-        assert hasattr(instance, 'postload_called'), "Postload should have been called"
-        assert getattr(instance, 'postload_called') == "updated", "Updated postload should be called"
+        assert hasattr(instance, "postload_called"), "Postload should have been called"
+        assert getattr(instance, "postload_called") == "updated", (
+            "Updated postload should be called"
+        )
 
 
 class TestArrayHandling:
@@ -194,22 +225,23 @@ class TestArrayHandling:
         mixed = ["string", 42, true, 3.14]
         """
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.toml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
             f.write(toml_content)
             temp_file = f.name
 
         try:
+
             @configurable(load_config=TomlReader(temp_file))
             class TestClass:
-                @setting('config.items')
+                @setting("config.items")
                 def items(self):
                     pass
 
-                @setting('config.numbers')
+                @setting("config.numbers")
                 def numbers(self):
                     pass
 
-                @setting('config.mixed')
+                @setting("config.mixed")
                 def mixed(self):
                     pass
 
@@ -236,18 +268,19 @@ class TestArrayHandling:
         nested = [["a", "b"], ["c", "d"]]
         """
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.toml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
             f.write(toml_content)
             temp_file = f.name
 
         try:
+
             @configurable(load_config=TomlReader(temp_file))
             class TestClass:
-                @setting('config.matrix')
+                @setting("config.matrix")
                 def matrix(self):
                     pass
 
-                @setting('config.nested')
+                @setting("config.nested")
                 def nested(self):
                     pass
 
@@ -272,14 +305,15 @@ class TestArrayHandling:
         empty_list = []
         """
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.toml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
             f.write(toml_content)
             temp_file = f.name
 
         try:
+
             @configurable(load_config=TomlReader(temp_file))
             class TestClass:
-                @setting('config.empty_list')
+                @setting("config.empty_list")
                 def empty_list(self):
                     pass
 
@@ -303,18 +337,19 @@ class TestArrayHandling:
         other_setting = "value"
         """
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.toml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
             f.write(toml_content)
             temp_file = f.name
 
         try:
+
             @configurable(load_config=TomlReader(temp_file))
             class TestClass:
-                @setting('config.missing_array', default=[1, 2, 3])
+                @setting("config.missing_array", default=[1, 2, 3])
                 def missing_array(self):
                     pass
 
-                @setting('config.other_setting')
+                @setting("config.other_setting")
                 def other_setting(self):
                     pass
 
@@ -342,26 +377,27 @@ class TestArrayHandling:
         booleans = [true, false, true]
         """
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.toml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
             f.write(toml_content)
             temp_file = f.name
 
         try:
+
             @configurable(load_config=TomlReader(temp_file))
             class TestClass:
-                @setting('config.strings')
+                @setting("config.strings")
                 def strings(self):
                     pass
 
-                @setting('config.integers')
+                @setting("config.integers")
                 def integers(self):
                     pass
 
-                @setting('config.floats')
+                @setting("config.floats")
                 def floats(self):
                     pass
 
-                @setting('config.booleans')
+                @setting("config.booleans")
                 def booleans(self):
                     pass
 
@@ -404,14 +440,15 @@ class TestArrayHandling:
         value = 3
         """
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.toml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
             f.write(toml_content)
             temp_file = f.name
 
         try:
+
             @configurable(load_config=TomlReader(temp_file))
             class TestClass:
-                @setting('items')
+                @setting("items")
                 def items(self):
                     pass
 
@@ -422,7 +459,7 @@ class TestArrayHandling:
             expected = [
                 {"name": "apple", "value": 1},
                 {"name": "banana", "value": 2},
-                {"name": "cherry", "value": 3}
+                {"name": "cherry", "value": 3},
             ]
             assert instance.items == expected
 
@@ -455,14 +492,15 @@ class TestArrayHandling:
         port = 5432
         """
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.toml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
             f.write(toml_content)
             temp_file = f.name
 
         try:
+
             @configurable(load_config=TomlReader(temp_file))
             class TestClass:
-                @setting('servers')
+                @setting("servers")
                 def servers(self):
                     pass
 
@@ -475,15 +513,10 @@ class TestArrayHandling:
                     "name": "web",
                     "hosts": [
                         {"ip": "192.168.1.1", "port": 80},
-                        {"ip": "192.168.1.2", "port": 443}
-                    ]
+                        {"ip": "192.168.1.2", "port": 443},
+                    ],
                 },
-                {
-                    "name": "db",
-                    "hosts": [
-                        {"ip": "192.168.2.1", "port": 5432}
-                    ]
-                }
+                {"name": "db", "hosts": [{"ip": "192.168.2.1", "port": 5432}]},
             ]
             assert instance.servers == expected
 
@@ -501,18 +534,19 @@ class TestArrayHandling:
         other_setting = "value"
         """
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.toml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
             f.write(toml_content)
             temp_file = f.name
 
         try:
+
             @configurable(load_config=TomlReader(temp_file))
             class TestClass:
-                @setting('items', default=[])
+                @setting("items", default=[])
                 def items(self):
                     pass
 
-                @setting('config.other_setting')
+                @setting("config.other_setting")
                 def other_setting(self):
                     pass
 

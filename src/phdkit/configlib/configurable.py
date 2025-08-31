@@ -50,7 +50,13 @@ class __Config:
     def __init__(self):
         self.registry: dict[
             type,
-            tuple[str, ConfigLoader | None, ConfigLoader | None, dict[str, "Setting"], Callable[[Any], None] | None],
+            tuple[
+                str,
+                ConfigLoader | None,
+                ConfigLoader | None,
+                dict[str, "Setting"],
+                Callable[[Any], None] | None,
+            ],
         ] = {}
 
     def __getitem__(self, instance: Any):
@@ -160,14 +166,28 @@ class __Config:
         """
 
         if klass not in self.registry:
-            self.register(klass, load_config, load_env=load_env, config_key=config_key, postload=postload)
+            self.register(
+                klass,
+                load_config,
+                load_env=load_env,
+                config_key=config_key,
+                postload=postload,
+            )
         else:
-            (config_key0, load_config0, load_env0, settings, postload0) = self.registry[klass]
+            (config_key0, load_config0, load_env0, settings, postload0) = self.registry[
+                klass
+            ]
             config_key1 = config_key if config_key else config_key0
             load_config1 = load_config if load_config is not None else load_config0
             load_env1 = load_env if load_env is not None else load_env0
             postload1 = postload if postload is not None else postload0
-            self.registry[klass] = (config_key1, load_config1, load_env1, settings, postload1)
+            self.registry[klass] = (
+                config_key1,
+                load_config1,
+                load_env1,
+                settings,
+                postload1,
+            )
 
     def contains[T](self, klass: Type[T], config_key: str) -> bool:
         """Check if a class is registered with a config key.
@@ -241,9 +261,13 @@ class __Config:
         # Search through the Method Resolution Order (MRO) to find all registered settings
         for cls in klass.__mro__:
             if cls in self.registry:
-                cls_config_key, cls_load_config, cls_load_env, cls_settings, cls_postload = (
-                    self.registry[cls]
-                )
+                (
+                    cls_config_key,
+                    cls_load_config,
+                    cls_load_env,
+                    cls_settings,
+                    cls_postload,
+                ) = self.registry[cls]
 
                 # Use the most specific (first found) configuration loader and config key
                 if load_config is None:
@@ -407,7 +431,11 @@ def configurable(
 
     def decorator[T: Type](cls: T) -> T:
         Config.update(
-            cls, load_config=load_config, load_env=load_env, config_key=config_key, postload=postload
+            cls,
+            load_config=load_config,
+            load_env=load_env,
+            config_key=config_key,
+            postload=postload,
         )
         if postload is not None:
             cls.postload = postload
