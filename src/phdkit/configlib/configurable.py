@@ -50,7 +50,7 @@ class __Config:
     def __init__(self):
         self.registry: dict[
             type,
-            tuple[str, ConfigLoader | None, ConfigLoader | None, dict[str, "Setting"]],
+            tuple[str, ConfigLoader | None, ConfigLoader | None, dict[str, "Setting"], Callable[[Any], None] | None],
         ] = {}
 
     def __getitem__(self, instance: Any):
@@ -90,6 +90,7 @@ class __Config:
                 load_config: ConfigLoader | None = None,
                 load_env: ConfigLoader | None = None,
                 config_key: str = "",
+                postload: Callable[[Any], None] | None = None,
             ):
                 """Update the configuration set-ups for a class.
 
@@ -100,12 +101,14 @@ class __Config:
                     load_config: A callable that reads the configuration file and returns a dictionary.
                     load_env: A callable that reads the secret config values and returns a dictionary.
                     config_key: The config key to use for this class. If provided, only the parts of the config file that correspond to this key will be loaded.
+                    postload: A callable that is executed after loading the configuration for the instance.
                 """
                 Config.update(
                     instance,
                     load_config=load_config,
                     load_env=load_env,
                     config_key=config_key,
+                    postload=postload,
                 )
 
         return __SingleConfig()
@@ -117,6 +120,7 @@ class __Config:
         *,
         load_env: ConfigLoader | None = None,
         config_key: str = "",
+        postload: Callable[[Any], None] | None = None,
     ):
         """Register a class with a config key.
 
@@ -128,8 +132,9 @@ class __Config:
             load_config: A callable that reads the configuration file and returns a dictionary.
             load_env: A callable that reads the secret config values and returns a dictionary.
             config_key: The config key to use for this class. If provided, only the parts of the config file that correspond to this key will be loaded.
+            postload: A callable that is executed after loading the configuration for instances of this class.
         """
-        self.registry[klass] = (config_key, load_config, load_env, {})
+        self.registry[klass] = (config_key, load_config, load_env, {}, postload)
 
     def update[T](
         self,
@@ -138,6 +143,7 @@ class __Config:
         load_config: ConfigLoader | None = None,
         load_env: ConfigLoader | None = None,
         config_key: str = "",
+        postload: Callable[[Any], None] | None = None,
     ):
         """Update the config registry of a class.
 
@@ -150,16 +156,18 @@ class __Config:
             load_config: A callable that reads the configuration file and returns a dictionary.
             load_env: A callable that reads the secret config values and returns a dictionary.
             config_key: The config key to use for this class. If provided, only the parts of the config file that correspond to this key will be loaded.
+            postload: A callable that is executed after loading the configuration for instances of this class.
         """
 
         if klass not in self.registry:
-            self.register(klass, load_config, load_env=load_env, config_key=config_key)
+            self.register(klass, load_config, load_env=load_env, config_key=config_key, postload=postload)
         else:
-            (config_key0, load_config0, load_env0, settings) = self.registry[klass]
+            (config_key0, load_config0, load_env0, settings, postload0) = self.registry[klass]
             config_key1 = config_key if config_key else config_key0
             load_config1 = load_config if load_config is not None else load_config0
             load_env1 = load_env if load_env is not None else load_env0
-            self.registry[klass] = (config_key1, load_config1, load_env1, settings)
+            postload1 = postload if postload is not None else postload0
+            self.registry[klass] = (config_key1, load_config1, load_env1, settings, postload1)
 
     def contains[T](self, klass: Type[T], config_key: str) -> bool:
         """Check if a class is registered with a config key.
@@ -213,6 +221,8 @@ class __Config:
         """Load the configuration from files and set the settings.
 
         If not provided, the config will be loaded from the default locations.
+        After loading all settings, if a postload function was registered for the class,
+        it will be called with the instance as an argument.
 
         Args:
             instance: The instance of the class to load the configuration for.
@@ -226,11 +236,12 @@ class __Config:
         config_key = ""
         load_config = None
         load_env = None
+        postload = None
 
         # Search through the Method Resolution Order (MRO) to find all registered settings
         for cls in klass.__mro__:
             if cls in self.registry:
-                cls_config_key, cls_load_config, cls_load_env, cls_settings = (
+                cls_config_key, cls_load_config, cls_load_env, cls_settings, cls_postload = (
                     self.registry[cls]
                 )
 
@@ -239,6 +250,7 @@ class __Config:
                     config_key = cls_config_key
                     load_config = cls_load_config
                     load_env = cls_load_env
+                    postload = cls_postload
 
                 # Add settings from this class (more specific settings override parent settings)
                 for setting_key, setting in cls_settings.items():
@@ -326,6 +338,9 @@ class __Config:
                 else:
                     setting.fset(instance, setting.default)
 
+        if postload is not None:
+            postload(instance)
+
 
 Config = __Config()
 config = __Config()
@@ -376,6 +391,7 @@ def configurable(
     *,
     config_key: str = "",
     load_env: ConfigLoader | None = None,
+    postload: Callable[[Any], None] | None = None,
 ):
     """Decorator to register a class as configurable.
 
@@ -386,12 +402,15 @@ def configurable(
         config_key: The config key to use for this class. If provided, only the parts of the config file that correspond to this key will be loaded.
         load_config: A callable that reads the configuration file and returns a dictionary.
         load_env: A callable that reads the secret config values and returns a dictionary.
+        postload: A callable that is executed after loading the configuration. If provided, it will also be registered as a member function of the class.
     """
 
     def decorator[T: Type](cls: T) -> T:
         Config.update(
-            cls, load_config=load_config, load_env=load_env, config_key=config_key
+            cls, load_config=load_config, load_env=load_env, config_key=config_key, postload=postload
         )
+        if postload is not None:
+            cls.postload = postload
         return cls
 
     return decorator
