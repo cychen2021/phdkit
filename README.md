@@ -1,6 +1,6 @@
 # phdkit - Scripting Utilities for PhD Students
 
-[![CI](https://github.com/cychen2021/watchcat-workspace/actions/workflows/ci.yml/badge.svg)](https://github.com/cychen2021/watchcat-workspace/actions/workflows/ci.yml)
+[![CI](https://github.com/cychen2021/phdkit/actions/workflows/ci.yml/badge.svg)](https://github.com/cychen2021/phdkit/actions/workflows/ci.yml)
 
 ## Overview
 
