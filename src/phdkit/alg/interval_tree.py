@@ -5,9 +5,10 @@ and querying intervals. It's particularly useful for problems involving overlapp
 intervals, range queries, and conflict detection in scheduling systems.
 """
 
-from typing import List, Optional, Union, Any, Generator
+from typing import List, Optional, Union, Any, Generator, Protocol, TypeVar
 from dataclasses import dataclass
 from enum import Enum
+from functools import total_ordering
 
 
 class Color(Enum):
@@ -27,8 +28,8 @@ class Interval:
         data: Optional data associated with the interval.
     """
 
-    start: Union[int, float]
-    end: Union[int, float]
+    start: Any
+    end: Any
     data: Any = None
 
     def __post_init__(self) -> None:
@@ -59,7 +60,7 @@ class Interval:
         # Normal interval overlap check
         return self.start < other.end and other.start < self.end
 
-    def contains_point(self, point: Union[int, float]) -> bool:
+    def contains_point(self, point: Any) -> bool:
         """Check if this interval contains a specific point.
 
         Uses half-open intervals: [start, end).
@@ -335,7 +336,7 @@ class IntervalTree:
         if node.right is not None and node.interval.start <= interval.end:
             self._search_overlaps_recursive(node.right, interval, results)
 
-    def search_point(self, point: Union[int, float]) -> List[Interval]:
+    def search_point(self, point: Any) -> List[Interval]:
         """Find all intervals that contain the given point.
 
         Args:
@@ -348,7 +349,7 @@ class IntervalTree:
         return self.search_overlaps(point_interval)
 
     def search(
-        self, start: Union[int, float], end: Union[int, float]
+        self, start: Any, end: Any
     ) -> List[Interval]:
         """Find all intervals that overlap with the given range.
 
@@ -362,7 +363,7 @@ class IntervalTree:
         query_interval = Interval(start, end)
         return self.search_overlaps(query_interval)
 
-    def query_point(self, point: Union[int, float]) -> List[Interval]:
+    def query_point(self, point: Any) -> List[Interval]:
         """Find all intervals that contain the given point.
 
         This is an alias for search_point for convenience.
