@@ -28,6 +28,7 @@ class Interval:
         data: Optional data associated with the interval.
     """
 
+    # TODO: Make this more type-safe with generics if needed
     start: Any
     end: Any
     data: Any = None
