@@ -1,7 +1,8 @@
-from hatchling.metadata.plugin.interface import MetadataHookInterface # type: ignore
+from hatchling.metadata.plugin.interface import MetadataHookInterface  # type: ignore
 from pathlib import Path
 
 PROJECT_SOURCE = Path(__file__).parent.resolve()
+
 
 class RedactHook(MetadataHookInterface):
     def update(self, metadata):

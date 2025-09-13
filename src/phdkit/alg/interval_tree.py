@@ -349,9 +349,7 @@ class IntervalTree:
         point_interval = Interval(point, point)
         return self.search_overlaps(point_interval)
 
-    def search(
-        self, start: Any, end: Any
-    ) -> List[Interval]:
+    def search(self, start: Any, end: Any) -> List[Interval]:
         """Find all intervals that overlap with the given range.
 
         Args:
