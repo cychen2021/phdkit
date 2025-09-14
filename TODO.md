@@ -14,7 +14,7 @@
 - [x] ~~Implement the `dyntqdm` functionality of the `rich` wrapper module~~ Already support by `rich`
 - [x] Make `infix_fn` type-safe
 - [ ] Audit this whole "vibe-coding" interval tree implementation for correctness and performance
-- [ ] Develop a standard operating procedure for redaction the identity information for anonymous artifact submission in paper reviewing
+- [ ] Develop a standard operating procedure for redacting the identity information for anonymous artifact submission in paper reviewing
 - [ ] Refine the ergonomics of `prompt`
 - [ ] Add format specifiers to `prompt`
 - [x] Test whether `configlib` handles arrays in TOML correctly
