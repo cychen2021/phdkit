@@ -35,7 +35,14 @@ def enqueue_output(out, queue):
 
 class SubshellRunner(Protocol):
     def __call__(
-        self, cmd: list[str], *, check: bool = False, discard_stdout: bool, discard_stderr: bool, capture_output: bool, **kwargs
+        self,
+        cmd: list[str],
+        *,
+        check: bool = False,
+        discard_stdout: bool,
+        discard_stderr: bool,
+        capture_output: bool,
+        **kwargs,
     ) -> int | tuple[int, str, str]: ...
 
 
