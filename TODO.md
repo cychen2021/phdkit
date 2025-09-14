@@ -11,7 +11,7 @@
 - [x] Add docs for default setting values in `configlib`
 - [ ] Implement `log.watchdog`
 - [x] Implement the `subshell` functionality of the `rich` wrapper module
-- [x] ~~Implement the `dyntqdm` functionality of the `rich` wrapper module~~ Already support by `rich`
+- [x] ~~Implement the `dyntqdm` functionality of the `rich` wrapper module~~ Already supported by `rich`
 - [x] Make `infix_fn` type-safe
 - [ ] Audit this whole "vibe-coding" interval tree implementation for correctness and performance
 - [ ] Develop a standard operating procedure for redacting the identity information for anonymous artifact submission in paper reviewing
