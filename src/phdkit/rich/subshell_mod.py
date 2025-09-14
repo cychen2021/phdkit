@@ -112,6 +112,7 @@ def subshell(title: str, line_num: int) -> SubshellRunner:
         and the process exits non-zero, a CalledProcessError is raised.
     """
 
+    # XXX: Should we also add an argument and/or a function to set this explicitly?
     use_simple_subshell = os.environ.get("PHDKIT_SIMPLE_SUBSHELL", "false").lower() in [
         "1",
         "true",

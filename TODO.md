@@ -20,4 +20,4 @@
 - [x] Test whether `configlib` handles arrays in TOML correctly
 - [ ] Add a `py-tree-sitter` wrapper module
 - [ ] Maybe the `alg` module should be implemented in Zig?
-- [ ] Add a flag to `subshell` to switch it to a simple interface when interacting with coding agents
+- [x] Add a flag to `subshell` to switch it to a simple interface when interacting with coding agents
