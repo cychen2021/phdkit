@@ -228,7 +228,7 @@ def subshell(title: str, line_num: int) -> SubshellRunner:
             return (
                 return_code
                 if not capture_output
-                else (return_code, "".join(stdout_captured), "".join(stderr_captured)) # type: ignore
-            )  # type: ignore
+                else (return_code, "".join(stdout_captured), "".join(stderr_captured))  # type: ignore
+            )
 
     return __run
