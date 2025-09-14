@@ -12,6 +12,7 @@ Example:
 
 from __future__ import annotations
 
+import os
 from typing import List, Protocol
 
 from rich.text import Text
@@ -19,10 +20,23 @@ from rich.panel import Panel
 from rich.live import Live
 import subprocess
 import time
+from queue import Queue, Empty
+from threading import Thread
+import sys
+
+ON_POSIX = "posix" in sys.builtin_module_names
+
+
+def enqueue_output(out, queue):
+    for line in iter(out.readline, ""):
+        queue.put(line)
+    out.close()
 
 
 class SubshellRunner(Protocol):
-    def __call__(self, cmd: list[str], *, check: bool = False, **kwargs) -> int: ...
+    def __call__(
+        self, cmd: list[str], *, check: bool = False, **kwargs
+    ) -> int | tuple[int, str, str]: ...
 
 
 class ScrollPanel:
@@ -66,6 +80,21 @@ class ScrollPanel:
             self.__lines.pop(0)
 
 
+class DummyLive:
+    """A dummy context manager that does nothing, for use when rich Live
+    is not desired (e.g. in simple subshell mode).
+    """
+
+    def __enter__(self) -> None:
+        return None
+
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
+        return None
+
+    def refresh(self) -> None:
+        return None
+
+
 def subshell(title: str, line_num: int) -> SubshellRunner:
     """Factory that returns a function to run a subprocess and stream its
     output into a scrolling panel.
@@ -83,9 +112,25 @@ def subshell(title: str, line_num: int) -> SubshellRunner:
         and the process exits non-zero, a CalledProcessError is raised.
     """
 
-    panel = ScrollPanel(title, line_num)
+    use_simple_subshell = os.environ.get("PHDKIT_SIMPLE_SUBSHELL", "false").lower() in [
+        "1",
+        "true",
+        "yes",
+        "on",
+    ]
+    if not use_simple_subshell:
+        panel = ScrollPanel(title, line_num)
+    else:
+        panel = None
 
-    def __run(cmd: list[str], *, check: bool = False, **kwargs) -> int:
+    def __run(
+        cmd: list[str],
+        *,
+        capture_output: bool = False,
+        timeout: float | None = None,
+        check: bool = False,
+        **kwargs,
+    ) -> int | tuple[int, str, str]:
         """Run the given command and stream its stdout/stderr into a Live
         Rich Panel.
 
@@ -101,25 +146,77 @@ def subshell(title: str, line_num: int) -> SubshellRunner:
         """
 
         with (
-            Live(
-                vertical_overflow="visible", get_renderable=panel, auto_refresh=False
+            (
+                Live(
+                    vertical_overflow="visible",
+                    get_renderable=panel,
+                    auto_refresh=False,
+                )
+                if not use_simple_subshell
+                else DummyLive()
             ) as live,
             subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
+                stderr=subprocess.PIPE,
                 text=True,
                 **kwargs,
             ) as p,
         ):
             # small pause to allow the live panel to initialize visually
-            live.refresh()
+            if not use_simple_subshell:
+                assert isinstance(live, Live)
+                live.refresh()
             time.sleep(0.5)
             assert p.stdout is not None
-            # stream each line as it becomes available
-            for line in p.stdout:
-                panel.push(line.strip())
-                live.refresh()
+            stdout_captured = [] if capture_output else None
+            stderr_captured = [] if capture_output else None
+            q_stdout = Queue()
+            t_stdout = Thread(target=enqueue_output, args=(p.stdout, q_stdout))
+            t_stdout.daemon = True  # thread dies with the program
+            t_stdout.start()
+            q_stderr = Queue()
+            t_stderr = Thread(target=enqueue_output, args=(p.stderr, q_stderr))
+            t_stderr.daemon = True  # thread dies with the program
+            t_stderr.start()
+            start_time = time.time()
+            while True:
+                try:
+                    stdout_line = q_stdout.get_nowait()
+                except Empty:
+                    stdout_line = None
+                try:
+                    stderr_line = q_stderr.get_nowait()
+                except Empty:
+                    stderr_line = None
+
+                if stdout_line:
+                    if not use_simple_subshell:
+                        assert isinstance(live, Live)
+                        assert panel is not None
+                        panel.push(stdout_line.rstrip("\n"))
+                        live.refresh()
+                    else:
+                        print(stdout_line, end="")
+                if stderr_line:
+                    if not use_simple_subshell:
+                        assert isinstance(live, Live)
+                        assert panel is not None
+                        panel.push(stderr_line.rstrip("\n"))
+                        live.refresh()
+                    else:
+                        print(stderr_line, end="", file=sys.stderr)
+                if capture_output:
+                    if stdout_line:
+                        stdout_captured.append(stdout_line)  # type: ignore
+                    if stderr_line:
+                        stderr_captured.append(stderr_line)  # type: ignore
+                if p.poll() is not None:
+                    break
+                elapsed = time.time() - start_time
+                if timeout is not None and elapsed > timeout:
+                    p.kill()
+                    raise subprocess.TimeoutExpired(cmd, timeout)
             return_code = p.wait()
             if return_code != 0 and check:
                 # read() after iteration will be empty, but include for API
@@ -128,6 +225,10 @@ def subshell(title: str, line_num: int) -> SubshellRunner:
                     cmd,
                     output=p.stdout.read(),
                 )
-            return return_code
+            return (
+                return_code
+                if not capture_output
+                else (return_code, "".join(stdout_captured), "".join(stderr_captured)) # type: ignore
+            )  # type: ignore
 
     return __run
