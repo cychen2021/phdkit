@@ -35,7 +35,7 @@ def enqueue_output(out, queue):
 
 class SubshellRunner(Protocol):
     def __call__(
-        self, cmd: list[str], *, check: bool = False, **kwargs
+        self, cmd: list[str], *, check: bool = False, discard_stdout: bool, discard_stderr: bool, capture_output: bool, **kwargs
     ) -> int | tuple[int, str, str]: ...
 
 
@@ -130,6 +130,8 @@ def subshell(title: str, line_num: int) -> SubshellRunner:
         capture_output: bool = False,
         timeout: float | None = None,
         check: bool = False,
+        discard_stderr: bool = False,
+        discard_stdout: bool = False,
         **kwargs,
     ) -> int | tuple[int, str, str]:
         """Run the given command and stream its stdout/stderr into a Live
@@ -158,8 +160,8 @@ def subshell(title: str, line_num: int) -> SubshellRunner:
             ) as live,
             subprocess.Popen(
                 cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                stdout=subprocess.PIPE if not discard_stdout else subprocess.DEVNULL,
+                stderr=subprocess.PIPE if not discard_stderr else subprocess.DEVNULL,
                 text=True,
                 **kwargs,
             ) as p,
@@ -170,24 +172,33 @@ def subshell(title: str, line_num: int) -> SubshellRunner:
                 live.refresh()
             time.sleep(0.5)
             assert p.stdout is not None
+            assert not (capture_output and discard_stdout and discard_stderr)
             stdout_captured = [] if capture_output else None
             stderr_captured = [] if capture_output else None
-            q_stdout = Queue()
-            t_stdout = Thread(target=enqueue_output, args=(p.stdout, q_stdout))
-            t_stdout.daemon = True  # thread dies with the program
-            t_stdout.start()
-            q_stderr = Queue()
-            t_stderr = Thread(target=enqueue_output, args=(p.stderr, q_stderr))
-            t_stderr.daemon = True  # thread dies with the program
-            t_stderr.start()
+            if not discard_stdout:
+                q_stdout = Queue()
+                t_stdout = Thread(target=enqueue_output, args=(p.stdout, q_stdout))
+                t_stdout.daemon = True  # thread dies with the program
+                t_stdout.start()
+            if not discard_stderr:
+                q_stderr = Queue()
+                t_stderr = Thread(target=enqueue_output, args=(p.stderr, q_stderr))
+                t_stderr.daemon = True  # thread dies with the program
+                t_stderr.start()
             start_time = time.time()
             while True:
                 try:
-                    stdout_line = q_stdout.get_nowait()
+                    if not discard_stdout:
+                        stdout_line = q_stdout.get_nowait()
+                    else:
+                        stdout_line = None
                 except Empty:
                     stdout_line = None
                 try:
-                    stderr_line = q_stderr.get_nowait()
+                    if not discard_stderr:
+                        stderr_line = q_stderr.get_nowait()
+                    else:
+                        stderr_line = None
                 except Empty:
                     stderr_line = None
 
