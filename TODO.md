@@ -19,6 +19,6 @@
 - [ ] Add format specifiers to `prompt`
 - [x] Test whether `configlib` handles arrays in TOML correctly
 - [ ] Add a `py-tree-sitter` wrapper module
-- [ ] Maybe the `alg` module should be implemented in Zig?
+- [ ] We should implement `IntervalTree` in the `alg` module in Zig, as the Python implementation consumes too much memory
 - [x] Add a flag to `subshell` to switch it to a simple interface when interacting with coding agents
 - [ ] Move in the LLM pricing tracker
