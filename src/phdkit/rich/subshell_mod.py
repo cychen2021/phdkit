@@ -13,7 +13,7 @@ Example:
 from __future__ import annotations
 
 import os
-from typing import List, Protocol
+from typing import List, Protocol, Optional
 
 from rich.text import Text
 from rich.panel import Panel
@@ -27,11 +27,14 @@ import sys
 ON_POSIX = "posix" in sys.builtin_module_names
 
 
-def enqueue_output(out, queue):
-    for line in iter(out.readline, ""):
-        queue.put(line)
-    out.close()
-
+def enqueue_output(out, queue) -> Optional[Exception]:
+    try:
+        for line in iter(out.readline, ""):
+            queue.put(line)
+        out.close()
+    except Exception as e:
+        return e
+    return None
 
 class SubshellRunner(Protocol):
     def __call__(
@@ -173,81 +176,91 @@ def subshell(title: str, line_num: int) -> SubshellRunner:
                 **kwargs,
             ) as p,
         ):
-            # small pause to allow the live panel to initialize visually
-            if not use_simple_subshell:
-                assert isinstance(live, Live)
-                live.refresh()
-            time.sleep(0.5)
-            assert p.stdout is not None
-            assert not (capture_output and discard_stdout and discard_stderr)
-            stdout_captured = [] if capture_output else None
-            stderr_captured = [] if capture_output else None
-            if not discard_stdout:
-                q_stdout = Queue()
-                t_stdout = Thread(target=enqueue_output, args=(p.stdout, q_stdout))
-                t_stdout.daemon = True  # thread dies with the program
-                t_stdout.start()
-            if not discard_stderr:
-                q_stderr = Queue()
-                t_stderr = Thread(target=enqueue_output, args=(p.stderr, q_stderr))
-                t_stderr.daemon = True  # thread dies with the program
-                t_stderr.start()
-            start_time = time.time()
-            while True:
-                try:
-                    if not discard_stdout:
-                        stdout_line = q_stdout.get_nowait()
-                    else:
+            try:
+                # small pause to allow the live panel to initialize visually
+                if not use_simple_subshell:
+                    assert isinstance(live, Live)
+                    live.refresh()
+                time.sleep(0.5)
+                assert p.stdout is not None
+                assert not (capture_output and discard_stdout and discard_stderr)
+                stdout_captured = [] if capture_output else None
+                stderr_captured = [] if capture_output else None
+                if not discard_stdout:
+                    q_stdout = Queue()
+                    t_stdout = Thread(target=enqueue_output, args=(p.stdout, q_stdout))
+                    t_stdout.daemon = True  # thread dies with the program
+                    t_stdout.start()
+                if not discard_stderr:
+                    q_stderr = Queue()
+                    t_stderr = Thread(target=enqueue_output, args=(p.stderr, q_stderr))
+                    t_stderr.daemon = True  # thread dies with the program
+                    t_stderr.start()
+                start_time = time.time()
+                while True:
+                    try:
+                        if not discard_stdout:
+                            stdout_line = q_stdout.get_nowait()
+                        else:
+                            stdout_line = None
+                    except Empty:
                         stdout_line = None
-                except Empty:
-                    stdout_line = None
-                try:
-                    if not discard_stderr:
-                        stderr_line = q_stderr.get_nowait()
-                    else:
+                    try:
+                        if not discard_stderr:
+                            stderr_line = q_stderr.get_nowait()
+                        else:
+                            stderr_line = None
+                    except Empty:
                         stderr_line = None
-                except Empty:
-                    stderr_line = None
 
-                if stdout_line:
-                    if not use_simple_subshell:
-                        assert isinstance(live, Live)
-                        assert panel is not None
-                        panel.push(stdout_line.rstrip("\n"))
-                        live.refresh()
-                    else:
-                        print(stdout_line, end="")
-                if stderr_line:
-                    if not use_simple_subshell:
-                        assert isinstance(live, Live)
-                        assert panel is not None
-                        panel.push(stderr_line.rstrip("\n"))
-                        live.refresh()
-                    else:
-                        print(stderr_line, end="", file=sys.stderr)
-                if capture_output:
                     if stdout_line:
-                        stdout_captured.append(stdout_line)  # type: ignore
+                        if not use_simple_subshell:
+                            assert isinstance(live, Live)
+                            assert panel is not None
+                            panel.push(stdout_line.rstrip("\n"))
+                            live.refresh()
+                        else:
+                            print(stdout_line, end="")
                     if stderr_line:
-                        stderr_captured.append(stderr_line)  # type: ignore
-                if p.poll() is not None:
-                    break
-                elapsed = time.time() - start_time
-                if timeout is not None and elapsed > timeout:
-                    p.kill()
-                    raise subprocess.TimeoutExpired(cmd, timeout)
-            return_code = p.wait()
-            if return_code != 0 and check:
-                # read() after iteration will be empty, but include for API
-                raise subprocess.CalledProcessError(
-                    return_code,
-                    cmd,
-                    output=p.stdout.read(),
+                        if not use_simple_subshell:
+                            assert isinstance(live, Live)
+                            assert panel is not None
+                            panel.push(stderr_line.rstrip("\n"))
+                            live.refresh()
+                        else:
+                            print(stderr_line, end="", file=sys.stderr)
+                    if capture_output:
+                        if stdout_line:
+                            stdout_captured.append(stdout_line)  # type: ignore
+                        if stderr_line:
+                            stderr_captured.append(stderr_line)  # type: ignore
+                    if p.poll() is not None:
+                        break
+                    elapsed = time.time() - start_time
+                    if timeout is not None and elapsed > timeout:
+                        p.kill()
+                        raise subprocess.TimeoutExpired(cmd, timeout)
+                return_code = p.wait()
+                if return_code != 0 and check:
+                    # read() after iteration will be empty, but include for API
+                    raise subprocess.CalledProcessError(
+                        return_code,
+                        cmd,
+                        output=p.stdout.read(),
+                    )
+                return (
+                    return_code
+                    if not capture_output
+                    else (return_code, "".join(stdout_captured), "".join(stderr_captured))  # type: ignore
                 )
-            return (
-                return_code
-                if not capture_output
-                else (return_code, "".join(stdout_captured), "".join(stderr_captured))  # type: ignore
-            )
+            finally:
+                if not discard_stdout:
+                    except1 = t_stdout.join(timeout=0.1)
+                    if except1 is not None:
+                        raise except1
+                if not discard_stderr:
+                    except2 = t_stderr.join(timeout=0.1)
+                    if except2 is not None:
+                        raise except2
 
     return __run
