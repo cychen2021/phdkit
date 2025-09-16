@@ -179,7 +179,7 @@ def subshell(title: str, line_num: int) -> SubshellRunner:
                 stdout=subprocess.PIPE if not discard_stdout else subprocess.DEVNULL,
                 stderr=subprocess.PIPE if not discard_stderr else subprocess.DEVNULL,
                 text=True,
-                preexec_fn=os.setsid,
+                preexec_fn=os.setpgrp,
                 **kwargs,
             ) as p,
         ):
@@ -245,7 +245,11 @@ def subshell(title: str, line_num: int) -> SubshellRunner:
                         break
                     elapsed = time.time() - start_time
                     if timeout is not None and elapsed > timeout:
-                        os.killpg(os.getpgid(p.pid), signal.SIGKILL)
+                        try:
+                            os.killpg(os.getpgid(p.pid), signal.SIGKILL)
+                        except ProcessLookupError:
+                            # process already exited
+                            pass
                         raise subprocess.TimeoutExpired(cmd, timeout)
                 return_code = p.wait()
                 if return_code != 0 and check:
