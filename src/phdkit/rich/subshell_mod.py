@@ -40,6 +40,7 @@ def enqueue_output(out: IO[str], queue) -> Optional[Exception]:
         return e
     return None
 
+
 class SubshellRunner(Protocol):
     def __call__(
         self,
@@ -255,7 +256,11 @@ def subshell(title: str, line_num: int) -> SubshellRunner:
                 return (
                     return_code
                     if not capture_output
-                    else (return_code, "".join(stdout_captured), "".join(stderr_captured))  # type: ignore
+                    else (
+                        return_code,
+                        "".join(stdout_captured),
+                        "".join(stderr_captured),
+                    )  # type: ignore
                 )
             finally:
                 if not discard_stdout:
