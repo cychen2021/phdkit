@@ -18,6 +18,7 @@ def main() -> None:
             [
                 "src",
                 "tests",
+                "hatch_hooks",
                 *[f for f in os.listdir(PROJECT_ROOT) if f.endswith(".py")],
             ],
         )
