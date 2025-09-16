@@ -13,7 +13,7 @@ Example:
 from __future__ import annotations
 
 import os
-from typing import List, Protocol, Optional
+from typing import IO, List, Protocol, Optional
 
 from rich.text import Text
 from rich.panel import Panel
@@ -27,11 +27,15 @@ import sys
 ON_POSIX = "posix" in sys.builtin_module_names
 
 
-def enqueue_output(out, queue) -> Optional[Exception]:
+def enqueue_output(out: IO[str], queue) -> Optional[Exception]:
     try:
-        for line in iter(out.readline, ""):
+        while not out.closed:
+            line = out.readline()
+            if not line:
+                break
             queue.put(line)
-        out.close()
+        if not out.closed:
+            out.close()
     except Exception as e:
         return e
     return None
