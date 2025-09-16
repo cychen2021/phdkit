@@ -14,7 +14,7 @@
 - [x] ~~Implement the `dyntqdm` functionality of the `rich` wrapper module~~ Already supported by `rich`
 - [x] Make `infix_fn` type-safe
 - [x] Audit this whole "vibe-coding" interval tree implementation for correctness and performance
-- [ ] Develop a standard operating procedure for redacting the identity information for anonymous artifact submission in paper reviewing
+- [ ] Develop a standard operating procedure (sop) for redacting the identity information for anonymous artifact submission in paper reviewing
 - [ ] Refine the ergonomics of `prompt`
 - [ ] Add format specifiers to `prompt`
 - [x] Test whether `configlib` handles arrays in TOML correctly
@@ -22,3 +22,4 @@
 - [ ] We should implement `IntervalTree` in the `alg` module in Zig, as the Python implementation consumes too much memory
 - [x] Add a flag to `subshell` to switch it to a simple interface when interacting with coding agents
 - [ ] Move in the LLM pricing tracker
+- [ ] Develop a sop to integrate Python code with native language code (such as Rust and Zig) to accommodate memory/time critical scenarios 
