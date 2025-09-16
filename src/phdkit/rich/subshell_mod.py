@@ -13,6 +13,7 @@ Example:
 from __future__ import annotations
 
 import os
+import signal
 from typing import IO, List, Protocol, Optional
 
 from rich.text import Text
@@ -178,6 +179,7 @@ def subshell(title: str, line_num: int) -> SubshellRunner:
                 stdout=subprocess.PIPE if not discard_stdout else subprocess.DEVNULL,
                 stderr=subprocess.PIPE if not discard_stderr else subprocess.DEVNULL,
                 text=True,
+                preexec_fn=os.setsid,
                 **kwargs,
             ) as p,
         ):
@@ -243,7 +245,7 @@ def subshell(title: str, line_num: int) -> SubshellRunner:
                         break
                     elapsed = time.time() - start_time
                     if timeout is not None and elapsed > timeout:
-                        p.kill()
+                        os.killpg(os.getpgid(p.pid), signal.SIGKILL)
                         raise subprocess.TimeoutExpired(cmd, timeout)
                 return_code = p.wait()
                 if return_code != 0 and check:
@@ -258,9 +260,9 @@ def subshell(title: str, line_num: int) -> SubshellRunner:
                     if not capture_output
                     else (
                         return_code,
-                        "".join(stdout_captured),
-                        "".join(stderr_captured),
-                    )  # type: ignore
+                        "".join(stdout_captured), # type: ignore
+                        "".join(stderr_captured), # type: ignore
+                    )
                 )
             finally:
                 if not discard_stdout:
