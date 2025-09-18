@@ -256,3 +256,6 @@ uv.lock
 .python-version
 
 .zig-cache/
+
+pydust.build.zig
+build.zig

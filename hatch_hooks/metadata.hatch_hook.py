@@ -5,8 +5,6 @@ PROJECT_SOURCE = Path(__file__).parent.parent.resolve()
 
 
 class RedactReadmeHook(MetadataHookInterface):
-    PLUGIN_NAME = "redact_readme"
-
     def update(self, metadata):
         with open(PROJECT_SOURCE / "README.md", "r", encoding="utf-8") as f:
             content = f.read()

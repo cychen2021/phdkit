@@ -32,13 +32,27 @@ classifiers = [
 Repository = "https://github.com/cychen2021/phdkit"
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "ziggy-pydust @ git+https://github.com/cychen2021/ziggy-pydust.git"]
 build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.sdist]
+include = ["zig/*.zig"]
+
+[tool.hatch.build.targets.wheel]
+include = ["*.so"]
+
+[[tool.pydust.ext_module]]
+name = "intv_tree"
+root = "zig/intv_tree.zig"
 
 [dependency-groups]
 dev = [
     "pytest>=8.4.1",
+    "pydust==0.1.2"
 ]
 
 [tool.hatch.metadata.hooks.custom]
 path = "hatch_hooks/metadata.hatch_hook.py"
+
+[tool.hatch.build.hooks.custom]
+path = "hatch_hooks/build.hatch_hook.py"
