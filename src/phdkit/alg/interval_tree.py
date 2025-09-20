@@ -29,6 +29,7 @@ class Interval:
     """
 
     # TODO: Make this more type-safe with generics if needed
+    #  Maybe use `SupportsRichComparison` of Pylance
     start: Any
     end: Any
     data: Any = None
