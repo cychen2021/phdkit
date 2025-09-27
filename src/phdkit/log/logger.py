@@ -131,7 +131,7 @@ class LogOutput:
             f"auto_timestamp={self.__auto_timestamp})"
         )
 
-    class __EmailHandler(logging.NullHandler):
+    class __EmailHandler(logging.Handler):
         def __init__(self, email_notifier: EmailNotifier):
             super().__init__()
             self.__email_notifier = email_notifier
@@ -161,11 +161,8 @@ class LogOutput:
         def handle(self, record: logging.LogRecord):
             if record.levelno < self.level:
                 return
-            self.__handler.handle(record)
-
-        @override
-        def createLock(self):
-            super(logging.NullHandler, self).createLock()
+            rv = self.filter(record)
+            super().handle(record)
 
         @override
         def setLevel(self, level: int | str) -> None:
