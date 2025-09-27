@@ -8,48 +8,48 @@ from ..configlib import setting, configurable
 def __read_email_config(config_file: str | None) -> dict:
     if config_file is None:
         config = {}
-        if "MAILOG_RECEIVER" in os.environ:
-            config["mailog_receiver"] = os.environ["MAILOG_RECEIVER"]
+        if "email_RECEIVER" in os.environ:
+            config["email_receiver"] = os.environ["email_RECEIVER"]
         else:
-            config["mailog_receiver"] = None
+            config["email_receiver"] = None
 
-        if "MAILOG_SMTP" in os.environ:
-            config["mailog_smtp"] = os.environ["MAILOG_SMTP"]
+        if "email_SMTP" in os.environ:
+            config["email_smtp"] = os.environ["email_SMTP"]
         else:
-            config["mailog_smtp"] = None
+            config["email_smtp"] = None
 
-        if "MAILOG_SENDER" in os.environ:
-            config["mailog_sender"] = os.environ["MAILOG_SENDER"]
+        if "email_SENDER" in os.environ:
+            config["email_sender"] = os.environ["email_SENDER"]
         else:
-            config["mailog_sender"] = None
+            config["email_sender"] = None
     else:
         with open(config_file, "rb") as f:
             config = tomllib.load(f)
         assert set(config.keys()).issubset(
-            {"mailog_receiver", "mailog_smtp", "mailog_sender"}
+            {"email_receiver", "email_smtp", "email_sender"}
         )
-        if "mailog_receiver" not in config:
-            config["mailog_receiver"] = None
-        if "mailog_smtp" not in config:
-            config["mailog_smtp"] = None
-        if "mailog_sender" not in config:
-            config["mailog_sender"] = None
+        if "email_receiver" not in config:
+            config["email_receiver"] = None
+        if "email_smtp" not in config:
+            config["email_smtp"] = None
+        if "email_sender" not in config:
+            config["email_sender"] = None
     return config
 
 
 def __read_email_env_config(config_file: str | None) -> dict:
     if config_file is None:
         config = {}
-        if "MAILOG_PASSWORD" in os.environ:
-            config["mailog_password"] = os.environ["MAILOG_PASSWORD"]
+        if "email_PASSWORD" in os.environ:
+            config["email_password"] = os.environ["email_PASSWORD"]
         else:
-            config["mailog_password"] = None
+            config["email_password"] = None
     else:
         with open(config_file, "rb") as f:
             config = tomllib.load(f)
-        assert set(config.keys()).issubset({"mailog_password"})
-        if "mailog_password" not in config:
-            config["mailog_password"] = None
+        assert set(config.keys()).issubset({"email_password"})
+        if "email_password" not in config:
+            config["email_password"] = None
     return config
 
 
