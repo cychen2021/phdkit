@@ -269,11 +269,11 @@ def subshell(title: str, line_num: int) -> SubshellRunner:
                     )
                 )
             finally:
-                if not discard_stdout:
+                if not discard_stdout and "t_stdout" in locals():
                     except1 = t_stdout.join(timeout=0.1)
                     if except1 is not None:
                         raise except1
-                if not discard_stderr:
+                if not discard_stderr and "t_stderr" in locals():
                     except2 = t_stderr.join(timeout=0.1)
                     if except2 is not None:
                         raise except2
