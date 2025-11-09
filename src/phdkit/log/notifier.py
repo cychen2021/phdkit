@@ -2,6 +2,8 @@ from datetime import datetime
 import tomllib
 import os
 import smtplib
+import sys
+import time
 from email.mime.text import MIMEText
 from ..configlib import setting, configurable
 
@@ -73,7 +75,13 @@ class EmailNotifier:
         password (str | None): The password for the sender's email account.
     Methods:
         send(header: str, body: str): Sends an email with the given header and body.
+        close(): Closes the SMTP connection.
     """
+
+    def __init__(self):
+        self._smtp_connection: smtplib.SMTP | None = None
+        self._last_send_time: float = 0
+        self._connection_timeout: float = 300  # 5 minutes
 
     @setting("email_receiver")
     def receiver(self) -> str | None: ...
@@ -86,6 +94,47 @@ class EmailNotifier:
 
     @setting("email_password")
     def password(self) -> str | None: ...
+
+    def _ensure_connected(self):
+        """Ensure SMTP connection is established and fresh."""
+        current_time = time.time()
+        connection_age = current_time - self._last_send_time
+
+        # If connection doesn't exist or is too old, reconnect
+        if (
+            self._smtp_connection is None
+            or connection_age > self._connection_timeout
+            or self._smtp_connection.noop()[0] != 250
+        ):
+            # Close old connection if exists
+            if self._smtp_connection is not None:
+                try:
+                    self._smtp_connection.quit()
+                except Exception:
+                    pass  # Ignore errors during cleanup
+                self._smtp_connection = None
+
+            # Create new connection with 30 second timeout
+            assert self.smtp is not None
+            assert self.sender is not None
+            assert self.password is not None
+            self._smtp_connection = smtplib.SMTP(self.smtp, timeout=30)
+            self._smtp_connection.starttls()
+            self._smtp_connection.login(self.sender, self.password)
+            self._last_send_time = current_time
+
+    def close(self):
+        """Close the SMTP connection."""
+        if self._smtp_connection is not None:
+            try:
+                self._smtp_connection.quit()
+            except Exception:
+                pass  # Ignore errors during cleanup
+            self._smtp_connection = None
+
+    def __del__(self):
+        """Cleanup SMTP connection on object destruction."""
+        self.close()
 
     def send(self, header: str, body: str):
         """Send an email with the given header and body."""
@@ -103,10 +152,17 @@ class EmailNotifier:
         msg["From"] = self.sender
         msg["To"] = self.receiver
 
-        with smtplib.SMTP(self.smtp) as server:
-            server.starttls()
-            server.login(self.sender, self.password)
-            server.sendmail(self.sender, [self.receiver], msg.as_string())
+        try:
+            # Ensure connection is alive
+            self._ensure_connected()
+
+            assert self._smtp_connection is not None
+            # Send the email
+            self._smtp_connection.sendmail(
+                self.sender, [self.receiver], msg.as_string()
+            )
+            self._last_send_time = time.time()
+
             if os.environ.get("PHDKIT_EMAIL_DEBUG", "0").lower() in [
                 "1",
                 "true",
@@ -115,4 +171,37 @@ class EmailNotifier:
             ]:
                 print(
                     f"Email sent: from {self.sender} to {self.receiver} through {self.smtp} at {datetime.now()}"
+                )
+        except Exception as e:
+            # Print error to stderr
+            print(
+                f"ERROR: Failed to send email '{header}': {e!r}",
+                file=sys.stderr,
+            )
+
+            # Close broken connection and try once more
+            self.close()
+
+            try:
+                self._ensure_connected()
+                assert self._smtp_connection is not None
+                self._smtp_connection.sendmail(
+                    self.sender, [self.receiver], msg.as_string()
+                )
+                self._last_send_time = time.time()
+
+                if os.environ.get("PHDKIT_EMAIL_DEBUG", "0").lower() in [
+                    "1",
+                    "true",
+                    "yes",
+                    "on",
+                ]:
+                    print(
+                        f"Email sent (retry): from {self.sender} to {self.receiver} through {self.smtp} at {datetime.now()}"
+                    )
+            except Exception as retry_error:
+                # Final failure - print and give up
+                print(
+                    f"ERROR: Failed to send email '{header}' after retry: {retry_error!r}",
+                    file=sys.stderr,
                 )
