@@ -82,6 +82,16 @@ class EmailNotifier:
         self._smtp_connection: smtplib.SMTP | None = None
         self._last_send_time: float = 0
         self._connection_timeout: float = 300  # 5 minutes
+        if os.environ.get("PHDKIT_EMAIL_DEBUG", "0").lower() in [
+            "1",
+            "true",
+            "yes",
+            "on",
+        ]:
+            # We use a debug file as the output of exceptions insider a logger
+            #  is often swallowed.
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            self._debug_file = open(f"x_phdkit_email_debug_{timestamp}.log", "a")
 
     @setting("email_receiver")
     def receiver(self) -> str | None: ...
@@ -181,13 +191,17 @@ class EmailNotifier:
                 "on",
             ]:
                 print(
-                    f"Email sent: from {self.sender} to {self.receiver} through {self.smtp} at {datetime.now()}"
+                    f"Email sent: from {self.sender} to {self.receiver} through {self.smtp} at {datetime.now()}",
+                    file=self._debug_file,
+                    flush=True,
                 )
+
         except Exception as e:
             # Print error to stderr
             print(
                 f"ERROR: Failed to send email '{header}': {e!r}",
-                file=sys.stderr,
+                file=self._debug_file,
+                flush=True,
             )
 
             # Close broken connection and try once more
@@ -208,11 +222,14 @@ class EmailNotifier:
                     "on",
                 ]:
                     print(
-                        f"Email sent (retry): from {self.sender} to {self.receiver} through {self.smtp} at {datetime.now()}"
+                        f"Email sent (retry): from {self.sender} to {self.receiver} through {self.smtp} at {datetime.now()}",
+                        file=self._debug_file,
+                        flush=True,
                     )
             except Exception as retry_error:
                 # Final failure - print and give up
                 print(
                     f"ERROR: Failed to send email '{header}' after retry: {retry_error!r}",
-                    file=sys.stderr,
+                    file=self._debug_file,
+                    flush=True,
                 )
