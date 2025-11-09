@@ -100,12 +100,23 @@ class EmailNotifier:
         current_time = time.time()
         connection_age = current_time - self._last_send_time
 
-        # If connection doesn't exist or is too old, reconnect
-        if (
-            self._smtp_connection is None
-            or connection_age > self._connection_timeout
-            or self._smtp_connection.noop()[0] != 250
-        ):
+        # Check if we need to reconnect
+        needs_reconnect = False
+
+        if self._smtp_connection is None:
+            needs_reconnect = True
+        elif connection_age > self._connection_timeout:
+            needs_reconnect = True
+        else:
+            # Health check: try noop to see if connection is alive
+            try:
+                status, _ = self._smtp_connection.noop()
+                if status != 250:
+                    needs_reconnect = True
+            except Exception:
+                needs_reconnect = True
+
+        if needs_reconnect:
             # Close old connection if exists
             if self._smtp_connection is not None:
                 try:
