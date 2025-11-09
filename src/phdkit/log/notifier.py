@@ -92,6 +92,8 @@ class EmailNotifier:
             #  is often swallowed.
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             self._debug_file = open(f"x_phdkit_email_debug_{timestamp}.log", "a")
+        else:
+            self._debug_file = None
 
     @setting("email_receiver")
     def receiver(self) -> str | None: ...
@@ -200,7 +202,7 @@ class EmailNotifier:
             # Print error to stderr
             print(
                 f"ERROR: Failed to send email '{header}': {e!r}",
-                file=self._debug_file,
+                file=self._debug_file or sys.stderr,
                 flush=True,
             )
 
@@ -230,6 +232,6 @@ class EmailNotifier:
                 # Final failure - print and give up
                 print(
                     f"ERROR: Failed to send email '{header}' after retry: {retry_error!r}",
-                    file=self._debug_file,
+                    file=self._debug_file or sys.stderr,
                     flush=True,
                 )
