@@ -4,7 +4,7 @@ __all__ = ["UnimplementedError", "unimplemented", "strip_indent", "protect_inden
 
 
 class UnimplementedError(Exception):
-    def __init__(self, message: str = "This feature is not implemented yet."):
+    def __init__(self, message: str):  # = "This feature is not implemented yet."):
         self.message = message
 
     def __str__(self):
@@ -13,13 +13,24 @@ class UnimplementedError(Exception):
 
 def unimplemented(message: str | None = None) -> Any:
     if message is None:
-        raise UnimplementedError()
+        import sys
+
+        raise UnimplementedError(
+            f"This feature is not implemented: {sys._getframe(1).f_code.co_filename}:{sys._getframe(1).f_lineno} ({sys._getframe(1).f_code.co_name})"
+        )
     else:
         raise UnimplementedError(message)
 
 
 def todo(message: str | None = None) -> Any:
-    unimplemented(message)
+    if message is None:
+        import sys
+
+        raise UnimplementedError(
+            f"This feature is to be implemented: {sys._getframe(1).f_code.co_filename}:{sys._getframe(1).f_lineno} ({sys._getframe(1).f_code.co_name})"
+        )
+    else:
+        unimplemented(message)
 
 
 def strip_indent(text: str, *, keep_trailing_ws: bool = False) -> str:
