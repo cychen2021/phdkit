@@ -227,7 +227,7 @@ def subshell(title: str, line_num: int) -> SubshellRunner:
                             panel.push(stdout_line.rstrip("\n"))
                             live.refresh()
                         else:
-                            print(stdout_line, end="")
+                            print(stdout_line, end="", flush=True)
                     if stderr_line:
                         if not use_simple_subshell:
                             assert isinstance(live, Live)
@@ -235,7 +235,7 @@ def subshell(title: str, line_num: int) -> SubshellRunner:
                             panel.push(stderr_line.rstrip("\n"))
                             live.refresh()
                         else:
-                            print(stderr_line, end="", file=sys.stderr)
+                            print(stderr_line, end="", file=sys.stderr, flush=True)
                     if capture_output:
                         if stdout_line:
                             stdout_captured.append(stdout_line)  # type: ignore
