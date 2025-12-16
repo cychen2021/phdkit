@@ -164,118 +164,142 @@ def subshell(title: str, line_num: int) -> SubshellRunner:
             The process return code.
         """
 
-        with (
-            (
+        if not use_simple_subshell:
+            with (
                 Live(
                     vertical_overflow="visible",
                     get_renderable=panel,
                     auto_refresh=False,
-                )
-                if not use_simple_subshell
-                else DummyLive()
-            ) as live,
-            subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE if not discard_stdout else subprocess.DEVNULL,
-                stderr=subprocess.PIPE if not discard_stderr else subprocess.DEVNULL,
-                text=True,
-                preexec_fn=os.setpgrp,
-                **kwargs,
-            ) as p,
-        ):
-            try:
-                # small pause to allow the live panel to initialize visually
-                if not use_simple_subshell:
-                    assert isinstance(live, Live)
+                ) as live,
+                subprocess.Popen(
+                    cmd,
+                    stdout=subprocess.PIPE
+                    if not discard_stdout
+                    else subprocess.DEVNULL,
+                    stderr=subprocess.PIPE
+                    if not discard_stderr
+                    else subprocess.DEVNULL,
+                    text=True,
+                    preexec_fn=os.setpgrp,
+                    **kwargs,
+                ) as p,
+            ):
+                try:
                     live.refresh()
-                time.sleep(0.5)
-                assert p.stdout is not None
-                assert not (capture_output and discard_stdout and discard_stderr)
-                stdout_captured = [] if capture_output else None
-                stderr_captured = [] if capture_output else None
-                if not discard_stdout:
-                    q_stdout = Queue()
-                    t_stdout = Thread(target=enqueue_output, args=(p.stdout, q_stdout))
-                    t_stdout.daemon = True  # thread dies with the program
-                    t_stdout.start()
-                if not discard_stderr:
-                    q_stderr = Queue()
-                    t_stderr = Thread(target=enqueue_output, args=(p.stderr, q_stderr))
-                    t_stderr.daemon = True  # thread dies with the program
-                    t_stderr.start()
-                start_time = time.time()
-                while True:
-                    try:
-                        if not discard_stdout:
-                            stdout_line = q_stdout.get_nowait()
-                        else:
+                    time.sleep(0.5)
+                    assert p.stdout is not None
+                    assert not (capture_output and discard_stdout and discard_stderr)
+                    stdout_captured = [] if capture_output else None
+                    stderr_captured = [] if capture_output else None
+                    if not discard_stdout:
+                        q_stdout = Queue()
+                        t_stdout = Thread(
+                            target=enqueue_output, args=(p.stdout, q_stdout)
+                        )
+                        t_stdout.daemon = True  # thread dies with the program
+                        t_stdout.start()
+                    if not discard_stderr:
+                        q_stderr = Queue()
+                        t_stderr = Thread(
+                            target=enqueue_output, args=(p.stderr, q_stderr)
+                        )
+                        t_stderr.daemon = True  # thread dies with the program
+                        t_stderr.start()
+                    start_time = time.time()
+                    while True:
+                        try:
+                            if not discard_stdout:
+                                stdout_line = q_stdout.get_nowait()
+                            else:
+                                stdout_line = None
+                        except Empty:
                             stdout_line = None
-                    except Empty:
-                        stdout_line = None
-                    try:
-                        if not discard_stderr:
-                            stderr_line = q_stderr.get_nowait()
-                        else:
+                        try:
+                            if not discard_stderr:
+                                stderr_line = q_stderr.get_nowait()
+                            else:
+                                stderr_line = None
+                        except Empty:
                             stderr_line = None
-                    except Empty:
-                        stderr_line = None
 
-                    if stdout_line:
-                        if not use_simple_subshell:
-                            assert isinstance(live, Live)
+                        if stdout_line:
                             assert panel is not None
                             panel.push(stdout_line.rstrip("\n"))
                             live.refresh()
-                        else:
-                            print(stdout_line, end="", flush=True)
-                    if stderr_line:
-                        if not use_simple_subshell:
-                            assert isinstance(live, Live)
+                        if stderr_line:
                             assert panel is not None
                             panel.push(stderr_line.rstrip("\n"))
                             live.refresh()
-                        else:
-                            print(stderr_line, end="", file=sys.stderr, flush=True)
-                    if capture_output:
-                        if stdout_line:
-                            stdout_captured.append(stdout_line)  # type: ignore
-                        if stderr_line:
-                            stderr_captured.append(stderr_line)  # type: ignore
-                    if p.poll() is not None:
-                        break
-                    elapsed = time.time() - start_time
-                    if timeout is not None and elapsed > timeout:
-                        try:
-                            os.killpg(os.getpgid(p.pid), signal.SIGKILL)
-                        except ProcessLookupError:
-                            # process already exited
-                            pass
-                        raise subprocess.TimeoutExpired(cmd, timeout)
-                return_code = p.wait()
-                if return_code != 0 and check:
-                    # read() after iteration will be empty, but include for API
-                    raise subprocess.CalledProcessError(
-                        return_code,
-                        cmd,
-                        output=p.stdout.read(),
+                        if capture_output:
+                            if stdout_line:
+                                stdout_captured.append(stdout_line)  # type: ignore
+                            if stderr_line:
+                                stderr_captured.append(stderr_line)  # type: ignore
+                        if p.poll() is not None:
+                            break
+                        elapsed = time.time() - start_time
+                        if timeout is not None and elapsed > timeout:
+                            try:
+                                os.killpg(os.getpgid(p.pid), signal.SIGKILL)
+                            except ProcessLookupError:
+                                # process already exited
+                                pass
+                            raise subprocess.TimeoutExpired(cmd, timeout)
+                    return_code = p.wait()
+                    if return_code != 0 and check:
+                        # read() after iteration will be empty, but include for API
+                        raise subprocess.CalledProcessError(
+                            return_code,
+                            cmd,
+                            output=p.stdout.read(),
+                        )
+                    return (
+                        return_code
+                        if not capture_output
+                        else (
+                            return_code,
+                            "".join(stdout_captured),  # type: ignore
+                            "".join(stderr_captured),  # type: ignore
+                        )
                     )
-                return (
-                    return_code
-                    if not capture_output
-                    else (
-                        return_code,
-                        "".join(stdout_captured),  # type: ignore
-                        "".join(stderr_captured),  # type: ignore
-                    )
+                finally:
+                    if not discard_stdout and "t_stdout" in locals():
+                        except1 = t_stdout.join(timeout=0.1)
+                        if except1 is not None:
+                            raise except1
+                    if not discard_stderr and "t_stderr" in locals():
+                        except2 = t_stderr.join(timeout=0.1)
+                        if except2 is not None:
+                            raise except2
+        else:
+            # Simple subshell mode: just run the command normally
+            import subprocess
+
+            result = subprocess.run(
+                cmd,
+                stdout=subprocess.PIPE
+                if capture_output and not discard_stdout
+                else None,
+                stderr=subprocess.PIPE
+                if capture_output and not discard_stderr
+                else None,
+                text=True,
+                **kwargs,
+            )
+            if result.returncode != 0 and check:
+                raise subprocess.CalledProcessError(
+                    result.returncode,
+                    cmd,
+                    output=result.stdout,
+                    stderr=result.stderr,
                 )
-            finally:
-                if not discard_stdout and "t_stdout" in locals():
-                    except1 = t_stdout.join(timeout=0.1)
-                    if except1 is not None:
-                        raise except1
-                if not discard_stderr and "t_stderr" in locals():
-                    except2 = t_stderr.join(timeout=0.1)
-                    if except2 is not None:
-                        raise except2
+            if capture_output:
+                return (
+                    result.returncode,
+                    result.stdout if result.stdout is not None else "",
+                    result.stderr if result.stderr is not None else "",
+                )
+            else:
+                return result.returncode
 
     return __run
