@@ -273,8 +273,6 @@ def subshell(title: str, line_num: int) -> SubshellRunner:
                             raise except2
         else:
             # Simple subshell mode: just run the command normally
-            import subprocess
-
             result = subprocess.run(
                 cmd,
                 stdout=subprocess.PIPE
