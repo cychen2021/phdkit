@@ -48,9 +48,10 @@ class SubshellRunner(Protocol):
         cmd: list[str],
         *,
         check: bool = False,
-        discard_stdout: bool,
-        discard_stderr: bool,
-        capture_output: bool,
+        discard_stdout: bool = False,
+        discard_stderr: bool = False,
+        capture_output: bool = False,
+        timeout: float | None = None,
         **kwargs,
     ) -> int | tuple[int, str, str]: ...
 
