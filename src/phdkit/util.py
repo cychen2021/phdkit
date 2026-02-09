@@ -33,6 +33,17 @@ def todo(message: str | None = None) -> Any:
         unimplemented(message)
 
 
+def unreachable(message: str | None = None) -> Any:
+    if message is None:
+        import sys
+
+        raise UnimplementedError(
+            f"This code should be unreachable: {sys._getframe(1).f_code.co_filename}:{sys._getframe(1).f_lineno} ({sys._getframe(1).f_code.co_name})"
+        )
+    else:
+        unimplemented(message)
+
+
 def strip_indent(text: str, *, keep_trailing_ws: bool = False) -> str:
     '''Strip leading whitespace from each line in the text.
 

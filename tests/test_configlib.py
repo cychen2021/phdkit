@@ -21,9 +21,9 @@ class TestPostloadFunctionality:
 
         # Define a configurable class with postload
         @configurable(
-            load_config=lambda config_file: {"name": "test", "value": 42}
-            if config_file
-            else {},
+            load_config=lambda config_file: (
+                {"name": "test", "value": 42} if config_file else {}
+            ),
             postload=my_postload,
         )
         class TestClass:
@@ -107,13 +107,15 @@ class TestPostloadFunctionality:
             child_postload_called = True
 
         @configurable(
-            load_config=lambda config_file: {
-                "name": "parent",
-                "value": 100,
-                "child_value": 200,
-            }
-            if config_file
-            else {},
+            load_config=lambda config_file: (
+                {
+                    "name": "parent",
+                    "value": 100,
+                    "child_value": 200,
+                }
+                if config_file
+                else {}
+            ),
             postload=parent_postload,
         )
         class ParentClass:
@@ -122,13 +124,15 @@ class TestPostloadFunctionality:
                 pass
 
         @configurable(
-            load_config=lambda config_file: {
-                "name": "parent",
-                "value": 100,
-                "child_value": 200,
-            }
-            if config_file
-            else {},
+            load_config=lambda config_file: (
+                {
+                    "name": "parent",
+                    "value": 100,
+                    "child_value": 200,
+                }
+                if config_file
+                else {}
+            ),
             postload=child_postload,
         )
         class ChildClass(ParentClass):
