@@ -1,4 +1,4 @@
-# TODOs of phdkit (in priority order)
+# TODOs (in priority order)
 
 - [ ] Use custom `click` argument types to support the `configlib` for functions.
 - [ ] Design a module for benchmark building pipelines
