@@ -1,29 +1,28 @@
-# TODOs of phdkit
+# TODOs of phdkit (in priority order)
 
-- [ ] Design the `configlib` module for functions a la classes
+- [ ] Use custom `click` argument types to support the `configlib` for functions.
+- [ ] Design a module for benchmark building pipelines
+- [ ] Use reflection for automated logger configuration for the log module
+- [ ] Implement `log.watchdog`
 - [ ] Figure out how to strictly separate `load_config` and `load_env` for `configurable` classes
 - [ ] Simplify the usage pattern of `load_config` and `load_env`
-- [x] Consider how to handle configurations of base classes in `configlib`
 - [ ] Add error messages if using a configuration setting before it is loaded
+- [ ] Develop a standard operating procedure (sop) for redacting the identity information for anonymous artifact submission in paper reviewing
+- [ ] Refine the ergonomics of `prompt`
+- [ ] Add format specifiers to `prompt`
+- [ ] Add a `py-tree-sitter` wrapper module
+- [ ] Move in the LLM pricing tracker
+- [ ] Develop a sop to integrate Python code with native language code (such as Rust and Zig) to accommodate memory/time critical scenarios 
+- [ ] ~~We should implement `IntervalTree` in the `alg` module in Zig, as the Python implementation consumes too much memory~~ Deferred: The current status of Zig toolchains is immature
+- [x] `subshell` sometimes misses outputs, especially when `PHDKIT_SIMPLE_SUBSHELL` is on
 - [x] ~~Consider how to use `configlib` for the context manager protocol~~
 - [x] Explore how to handle optional settings in `configlib`
 - [x] Add `postload` functionalities for `configlib`
 - [x] Add docs for default setting values in `configlib`
-- [ ] Implement `log.watchdog`
 - [x] Implement the `subshell` functionality of the `rich` wrapper module
-- [x] ~~Implement the `dyntqdm` functionality of the `rich` wrapper module~~ Already supported by `rich`
 - [x] Make `infix_fn` type-safe
 - [x] Audit this whole "vibe-coding" interval tree implementation for correctness and performance
-- [ ] Develop a standard operating procedure (sop) for redacting the identity information for anonymous artifact submission in paper reviewing
-- [ ] Refine the ergonomics of `prompt`
-- [ ] Add format specifiers to `prompt`
+- [x] Consider how to handle configurations of base classes in `configlib`
+- [x] ~~Implement the `dyntqdm` functionality of the `rich` wrapper module~~ Already supported by `rich`
 - [x] Test whether `configlib` handles arrays in TOML correctly
-- [ ] Add a `py-tree-sitter` wrapper module
-- [ ] ~~We should implement `IntervalTree` in the `alg` module in Zig, as the Python implementation consumes too much memory~~ Deferred: The current status of Zig toolchains is immature
 - [x] Add a flag to `subshell` to switch it to a simple interface when interacting with coding agents
-- [ ] Move in the LLM pricing tracker
-- [ ] Develop a sop to integrate Python code with native language code (such as Rust and Zig) to accommodate memory/time critical scenarios 
-- [x] `subshell` sometimes misses outputs, especially when `PHDKIT_SIMPLE_SUBSHELL` is on
-- [ ] Use custom `click` argument types to support the `configlib` for functions.
-- [ ] Design a module for benchmark building pipelines
-- [ ] Use reflection for automated logger configuration for the log module
