@@ -23,4 +23,7 @@
 - [x] Add a flag to `subshell` to switch it to a simple interface when interacting with coding agents
 - [ ] Move in the LLM pricing tracker
 - [ ] Develop a sop to integrate Python code with native language code (such as Rust and Zig) to accommodate memory/time critical scenarios 
-- [ ] `subshell` sometimes misses outputs, especially when `PHDKIT_SIMPLE_SUBSHELL` is on
+- [x] `subshell` sometimes misses outputs, especially when `PHDKIT_SIMPLE_SUBSHELL` is on
+- [ ] Use custom `click` argument types to support the `configlib` for functions.
+- [ ] Design a module for benchmark building pipelines
+- [ ] Use reflection for automated logger configuration for the log module
